@@ -99,10 +99,10 @@ export async function onRequest(context) {
     
     try {
         const url = new URL(request.url);
-        const kvNamespace = env.TRACKING_DB;
+        const kvNamespace = env['form-db'];
 
         if (!kvNamespace) {
-            throw new Error("KV Namespace not configured");
+            throw new Error("KV Namespace 'form-db' not configured. Please check your Cloudflare Pages settings.");
         }
 
         const path = url.pathname.replace('/api/', '');
@@ -119,7 +119,8 @@ export async function onRequest(context) {
 
     } catch (err) {
         console.error('An error occurred:', err);
-        response = new Response(JSON.stringify({ error: err.message || 'Internal Server Error' }), {
+        const errorMessage = err.message || 'Internal Server Error';
+        response = new Response(JSON.stringify({ error: errorMessage, details: err.stack }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' },
         });
