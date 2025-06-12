@@ -1,5 +1,5 @@
 (function() {
-    const SERVER_URL = '';
+    const SERVER_URL = 'https://tracker.whatifweb.co.nz';
     let isTrackingActive = false;
     const sessionId = Date.now().toString(36) + Math.random().toString(36).substr(2);
 
