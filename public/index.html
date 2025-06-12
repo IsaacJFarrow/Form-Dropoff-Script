@@ -16,6 +16,7 @@
         .date-filter:not(:last-child) { border-right: 1px solid #dee2e6; }
         .date-filter.active { background-color: #0d6efd; color: white; }
         .date-filter:hover:not(.active) { background-color: #f8f9fa; }
+        .data-info { text-align: right; color: #6c757d; font-size: 0.8rem; margin-top: -0.75rem; margin-bottom: 1rem; }
         .stats { display: flex; justify-content: space-around; text-align: center; margin-bottom: 2rem; }
         .stat-card { padding: 1rem; border-radius: 8px; background-color: #f8f9fa; flex-basis: 30%; }
         .stat-card h3 { margin: 0 0 0.5rem 0; color: #6c757d; text-transform: uppercase; font-size: 0.9rem; }
@@ -43,6 +44,7 @@
                 <button class="date-filter" data-range="30">30 Days</button>
             </div>
         </div>
+        <div class="data-info" id="dataInfo"></div>
 
         <div class="stats">
             <div class="stat-card">
@@ -161,7 +163,13 @@
         async function updateDashboard() {
             try {
                 const response = await fetch('/api/data');
-                let rawData = await response.json();
+                const allData = await response.json();
+                let filteredData = [...allData];
+
+                // --- Diagnostic Log ---
+                if (allData.length > 0) {
+                    console.log("Sample of first event object received from API:", allData[0]);
+                }
 
                 // --- Date Range Filter Logic ---
                 const activeButton = document.querySelector('.date-filter.active');
@@ -170,19 +178,28 @@
                 if (dateRange !== 'all') {
                     const days = parseInt(dateRange, 10);
                     const cutoffDate = new Date();
+                    // Set hours, minutes, seconds, and ms to 0 to get the start of the day
+                    cutoffDate.setHours(0, 0, 0, 0);
                     cutoffDate.setDate(cutoffDate.getDate() - days);
                     
-                    rawData = rawData.filter(event => {
-                        // Guard against old data that might not have a timestamp
-                        if (!event.timestamp) return false;
+                    filteredData = allData.filter(event => {
+                        if (!event || !event.timestamp) return false;
                         const eventDate = new Date(event.timestamp);
                         return eventDate >= cutoffDate;
                     });
                 }
                 
+                // --- Update UI with data info ---
+                const dataInfoEl = document.getElementById('dataInfo');
+                if (dateRange === 'all') {
+                    dataInfoEl.textContent = `Showing all ${allData.length} events.`;
+                } else {
+                    dataInfoEl.textContent = `Showing ${filteredData.length} events from the last ${dateRange} day(s) (${allData.length} total).`;
+                }
+
                 // --- KPI & Chart Logic ---
                 const sessions = {};
-                rawData.forEach(event => {
+                filteredData.forEach(event => {
                     const { sessionId, step, event: eventType } = event;
                     if (!sessionId) return;
                     if (!sessions[sessionId]) {
@@ -226,7 +243,7 @@
                 // --- Table Logic ---
                 const tableBody = document.querySelector("#submissionsTable tbody");
                 tableBody.innerHTML = ''; // Clear old data
-                const submissions = rawData
+                const submissions = filteredData
                     .filter(event => event.event === 'formSubmission')
                     .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)); // Sort descending
 
