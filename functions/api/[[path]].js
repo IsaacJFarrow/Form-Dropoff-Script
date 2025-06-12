@@ -29,25 +29,18 @@ const errorResponse = (message, status = 400) => {
  * @returns {Promise<Response>}
  */
 async function handleTrackRequest(request, kvNamespace) {
-    try {
-        const eventData = await request.json();
-        if (!eventData || typeof eventData !== 'object') {
-            return errorResponse('Invalid JSON payload');
-        }
-
-        const key = `event:${new Date().toISOString()}:${Math.random().toString(36).substr(2, 9)}`;
-        await kvNamespace.put(key, JSON.stringify(eventData));
-
-        console.log('Tracking event received:', eventData);
-        return new Response('Event tracked', { 
-            status: 200,
-            headers: { 'Access-Control-Allow-Origin': request.headers.get('Origin') }
+    const eventData = await request.json();
+    if (!eventData || typeof eventData !== 'object') {
+        return new Response(JSON.stringify({ error: 'Invalid JSON payload' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
         });
-
-    } catch (err) {
-        console.error('Error saving tracking event:', err);
-        return errorResponse('Error tracking event', 500);
     }
+
+    const key = `event:${new Date().toISOString()}:${Math.random().toString(36).substr(2, 9)}`;
+    await kvNamespace.put(key, JSON.stringify(eventData));
+    console.log('Tracking event received:', eventData);
+    return new Response('Event tracked', { status: 200 });
 }
 
 /**
@@ -56,23 +49,14 @@ async function handleTrackRequest(request, kvNamespace) {
  * @returns {Promise<Response>}
  */
 async function handleDataRequest(kvNamespace) {
-    try {
-        const list = await kvNamespace.list({ prefix: 'event:' });
-        const promises = list.keys.map(key => kvNamespace.get(key.name, { type: 'json' }));
-        const data = await Promise.all(promises);
-        
-        return new Response(JSON.stringify(data.filter(Boolean)), {
-            status: 200,
-            headers: { 
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*' // Data is safe to be public
-            },
-        });
-
-    } catch (err) {
-        console.error('Error fetching tracking data:', err);
-        return errorResponse('Error fetching data', 500);
-    }
+    const list = await kvNamespace.list({ prefix: 'event:' });
+    const promises = list.keys.map(key => kvNamespace.get(key.name, { type: 'json' }));
+    const data = await Promise.all(promises);
+    
+    return new Response(JSON.stringify(data.filter(Boolean)), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+    });
 }
 
 /**
@@ -82,42 +66,56 @@ async function handleDataRequest(kvNamespace) {
  */
 export async function onRequest(context) {
     const { request, env } = context;
-    const url = new URL(request.url);
-    const origin = request.headers.get('Origin');
+    let response;
 
-    // Handle CORS preflight requests
-    if (request.method === 'OPTIONS') {
-        if (origin && ALLOWED_ORIGINS.includes(origin)) {
-            return new Response(null, {
-                status: 204,
-                headers: {
-                    'Access-Control-Allow-Origin': origin,
-                    'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-                    'Access-Control-Allow-Headers': 'Content-Type',
-                    'Access-Control-Max-Age': '86400', // Cache preflight for 1 day
-                },
-            });
+    try {
+        const url = new URL(request.url);
+        const kvNamespace = env.TRACKING_DB;
+
+        if (!kvNamespace) {
+            throw new Error("KV Namespace not configured");
         }
-        // Handle invalid preflight requests
-        return new Response('Invalid preflight request', { status: 403 });
+
+        if (request.method === 'OPTIONS') {
+            response = new Response(null, { status: 204 });
+        } else {
+            const path = url.pathname.replace('/api/', '');
+
+            if (path === 'track' && request.method === 'POST') {
+                response = await handleTrackRequest(request, kvNamespace);
+            } else if (path === 'data' && request.method === 'GET') {
+                response = await handleDataRequest(kvNamespace);
+            } else {
+                response = new Response('Not Found', { status: 404 });
+            }
+        }
+    } catch (err) {
+        console.error('An error occurred:', err);
+        response = new Response(JSON.stringify({ error: err.message || 'Internal Server Error' }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' },
+        });
     }
 
-    // This makes the KV namespace available that you'll create in the Cloudflare dashboard.
-    const kvNamespace = env.TRACKING_DB;
-    if (!kvNamespace) {
-        return errorResponse("KV Namespace not configured", 500);
+    const origin = request.headers.get('Origin');
+    const newHeaders = new Headers(response.headers);
+
+    if (new URL(request.url).pathname === '/api/data') {
+        newHeaders.set('Access-Control-Allow-Origin', '*');
+    } else if (origin && ALLOWED_ORIGINS.includes(origin)) {
+        newHeaders.set('Access-Control-Allow-Origin', origin);
+        newHeaders.set('Vary', 'Origin');
+    }
+
+    if (request.method === 'OPTIONS') {
+        newHeaders.set('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+        newHeaders.set('Access-Control-Allow-Headers', 'Content-Type');
+        newHeaders.set('Access-Control-Max-Age', '86400');
     }
     
-    // Simple routing based on path and method
-    const path = url.pathname.replace('/api/', '');
-
-    if (path === 'track' && request.method === 'POST') {
-        return handleTrackRequest(request, kvNamespace);
-    }
-
-    if (path === 'data' && request.method === 'GET') {
-        return handleDataRequest(kvNamespace);
-    }
-
-    return new Response('Not Found', { status: 404 });
+    return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: newHeaders,
+    });
 } 
