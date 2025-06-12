@@ -4,6 +4,11 @@ const ALLOWED_ORIGINS = [
     // Add your webflow.io domain here if you test on it, e.g., 'https://your-site.webflow.io'
 ];
 
+// In-memory cache for /api/data endpoint
+let cachedData = null;
+let cachedAt = 0;
+const CACHE_DURATION_MS = 30 * 1000; // 30 seconds
+
 /**
  * A generic error response function
  * @param {string} message The error message
@@ -52,11 +57,22 @@ async function handleTrackRequest(request, kvNamespace) {
  * @returns {Promise<Response>}
  */
 async function handleDataRequest(kvNamespace) {
+    const now = Date.now();
+    if (cachedData && (now - cachedAt < CACHE_DURATION_MS)) {
+        // Return cached response
+        return new Response(cachedData, {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+        });
+    }
     const list = await kvNamespace.list({ prefix: 'event:' });
     const promises = list.keys.map(key => kvNamespace.get(key.name, { type: 'json' }));
     const data = await Promise.all(promises);
-    
-    return new Response(JSON.stringify(data.filter(Boolean)), {
+    const filtered = JSON.stringify(data.filter(Boolean));
+    // Update cache
+    cachedData = filtered;
+    cachedAt = now;
+    return new Response(filtered, {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
     });
