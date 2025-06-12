@@ -166,11 +166,6 @@
                 const allData = await response.json();
                 let filteredData = [...allData];
 
-                // --- Diagnostic Log ---
-                if (allData.length > 0) {
-                    console.log("Sample of first event object received from API:", allData[0]);
-                }
-
                 // --- Date Range Filter Logic ---
                 const activeButton = document.querySelector('.date-filter.active');
                 const dateRange = activeButton ? activeButton.dataset.range : 'all';

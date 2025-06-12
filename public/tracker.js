@@ -28,7 +28,6 @@
     function observeFormVisibility() {
         const formElement = document.querySelector('.multi-step-form_component');
         if (!formElement) {
-            console.log('Tracking script: Form element not found.');
             return;
         }
 
@@ -36,7 +35,6 @@
             if (window.getComputedStyle(formElement).display !== 'none' && !isTrackingActive) {
                 isTrackingActive = true;
                 sendTrackRequest({ event: 'formView' });
-                console.log('form viewed');
                 startStepTracking();
                 observer.disconnect();
             }
@@ -51,20 +49,17 @@
     function startStepTracking() {
         const currentStepElement = document.querySelector('[data-text="current-step"]');
         if (!currentStepElement) {
-            console.log('Tracking script: Current step element not found.');
             return;
         }
 
         let lastStep = currentStepElement.textContent.trim();
         sendTrackRequest({ event: 'stepChange', step: lastStep });
-        console.log(`Initial step detected: ${lastStep}`);
 
         const processStepChange = () => {
             const newStep = currentStepElement.textContent.trim();
             if (newStep && newStep !== lastStep) {
                 lastStep = newStep;
                 sendTrackRequest({ event: 'stepChange', step: newStep });
-                console.log(`step changed to ${newStep}`);
             }
         };
         
@@ -80,7 +75,6 @@
     function observeFormSubmission() {
         const successElement = document.querySelector('.form_message-success-wrapper');
         if (!successElement) {
-            console.log('Tracking script: Success element not found.');
             return;
         }
 
@@ -89,7 +83,6 @@
             if (window.getComputedStyle(successElement).display !== 'none' && !submissionSent) {
                 submissionSent = true;
                 sendTrackRequest({ event: 'formSubmission' });
-                console.log('Form submission tracked');
                 observer.disconnect();
             }
         });
