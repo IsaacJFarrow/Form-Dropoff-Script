@@ -1,0 +1,13 @@
+# Dependencies
+/node_modules
+
+# Local Database
+*.json
+
+# Environment
+.env*
+!/.env.example
+
+# OS / Editor specific
+.DS_Store
+.vscode/ 
