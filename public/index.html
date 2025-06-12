@@ -59,15 +59,10 @@
         <div class="tabs">
             <button class="tab-link active" onclick="openTab(event, 'Funnel')">Funnel Chart</button>
             <button class="tab-link" onclick="openTab(event, 'Submissions')">Submissions Log</button>
-            <button class="tab-link" onclick="openTab(event, 'PieChart')">Event Breakdown</button>
         </div>
 
         <div id="Funnel" class="tab-content" style="display: block;">
             <canvas id="funnelChart"></canvas>
-        </div>
-
-        <div id="PieChart" class="tab-content">
-            <canvas id="pieChart"></canvas>
         </div>
     
         <div id="Submissions" class="tab-content">
@@ -99,7 +94,6 @@
         }
 
         const funnelCtx = document.getElementById('funnelChart').getContext('2d');
-        const pieCtx = document.getElementById('pieChart').getContext('2d');
         Chart.register(ChartDataLabels);
 
         const funnelChart = new Chart(funnelCtx, {
@@ -161,29 +155,6 @@
             }
         });
 
-        const pieChart = new Chart(pieCtx, {
-            type: 'pie',
-            data: {
-                labels: [],
-                datasets: [{
-                    data: [],
-                    backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545', '#17a2b8'],
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    },
-                    title: {
-                        display: true,
-                        text: 'Breakdown of Tracking Events by Type'
-                    }
-                }
-            },
-        });
-
         async function updateDashboard() {
             try {
                 const response = await fetch('/api/data');
@@ -234,16 +205,6 @@
                 funnelChart.data.datasets[0].data = counts;
                 funnelChart.data.datasets[1].data = counts;
                 funnelChart.update();
-
-                // --- Pie Chart Logic ---
-                const eventCounts = rawData.reduce((acc, event) => {
-                    acc[event.event] = (acc[event.event] || 0) + 1;
-                    return acc;
-                }, {});
-
-                pieChart.data.labels = Object.keys(eventCounts);
-                pieChart.data.datasets[0].data = Object.values(eventCounts);
-                pieChart.update();
 
                 // --- Stats Card Logic ---
                 const sessionIds = Object.keys(sessions);
