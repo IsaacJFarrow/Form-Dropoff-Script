@@ -29,7 +29,7 @@ const errorResponse = (message, status = 400) => {
  * @returns {Promise<Response>}
  */
 async function handleTrackRequest(request, kvNamespace) {
-    const eventData = await request.json();
+    let eventData = await request.json(); // Use let to allow modification
     if (!eventData || typeof eventData !== 'object') {
         return new Response(JSON.stringify({ error: 'Invalid JSON payload' }), {
             status: 400,
@@ -37,7 +37,10 @@ async function handleTrackRequest(request, kvNamespace) {
         });
     }
 
-    const key = `event:${new Date().toISOString()}:${Math.random().toString(36).substr(2, 9)}`;
+    // Add a server-side timestamp to the event object
+    eventData.timestamp = new Date().toISOString();
+
+    const key = `event:${eventData.timestamp}:${Math.random().toString(36).substr(2, 9)}`;
     await kvNamespace.put(key, JSON.stringify(eventData));
     console.log('Tracking event received:', eventData);
     return new Response('Event tracked', { status: 200 });

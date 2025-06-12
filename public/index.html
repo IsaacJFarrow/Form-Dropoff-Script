@@ -3,15 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Form Drop-off Analysis</title>
+    <title>What IF Web - Multi Step Form Tracker</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <style>
         body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; padding: 2em; background-color: #f8f9fa; color: #212529; }
         .container { max-width: 900px; margin: auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         h1 { text-align: center; margin-bottom: 1rem; }
-        .controls { text-align: right; margin-bottom: 1rem; }
-        .controls label { margin-right: 0.5rem; }
+        .controls { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
+        .date-filter-group { display: flex; border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden; }
+        .date-filter { background-color: white; border: none; padding: 0.5rem 1rem; cursor: pointer; color: #495057; font-size: 0.9rem; transition: background-color 0.2s, color 0.2s; }
+        .date-filter:not(:last-child) { border-right: 1px solid #dee2e6; }
+        .date-filter.active { background-color: #0d6efd; color: white; }
+        .date-filter:hover:not(.active) { background-color: #f8f9fa; }
         .stats { display: flex; justify-content: space-around; text-align: center; margin-bottom: 2rem; }
         .stat-card { padding: 1rem; border-radius: 8px; background-color: #f8f9fa; flex-basis: 30%; }
         .stat-card h3 { margin: 0 0 0.5rem 0; color: #6c757d; text-transform: uppercase; font-size: 0.9rem; }
@@ -32,13 +36,12 @@
         <h1>Onboarding Analysis</h1>
 
         <div class="controls">
-            <label for="dateRange">Date Range:</label>
-            <select id="dateRange">
-                <option value="all">All Time</option>
-                <option value="1">Last 24 Hours</option>
-                <option value="7">Last 7 Days</option>
-                <option value="30">Last 30 Days</option>
-            </select>
+            <div class="date-filter-group">
+                <button class="date-filter active" data-range="all">All Time</button>
+                <button class="date-filter" data-range="1">24 Hours</button>
+                <button class="date-filter" data-range="7">7 Days</button>
+                <button class="date-filter" data-range="30">30 Days</button>
+            </div>
         </div>
 
         <div class="stats">
@@ -161,13 +164,17 @@
                 let rawData = await response.json();
 
                 // --- Date Range Filter Logic ---
-                const dateRange = document.getElementById('dateRange').value;
+                const activeButton = document.querySelector('.date-filter.active');
+                const dateRange = activeButton ? activeButton.dataset.range : 'all';
+
                 if (dateRange !== 'all') {
                     const days = parseInt(dateRange, 10);
                     const cutoffDate = new Date();
                     cutoffDate.setDate(cutoffDate.getDate() - days);
                     
                     rawData = rawData.filter(event => {
+                        // Guard against old data that might not have a timestamp
+                        if (!event.timestamp) return false;
                         const eventDate = new Date(event.timestamp);
                         return eventDate >= cutoffDate;
                     });
@@ -236,7 +243,14 @@
             }
         }
 
-        document.getElementById('dateRange').addEventListener('change', updateDashboard);
+        document.querySelectorAll('.date-filter').forEach(button => {
+            button.addEventListener('click', (e) => {
+                document.querySelectorAll('.date-filter').forEach(btn => btn.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+                updateDashboard();
+            });
+        });
+        
         updateDashboard();
         setInterval(updateDashboard, 5000);
     </script>
