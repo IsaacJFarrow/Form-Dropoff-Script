@@ -66,8 +66,37 @@ async function handleDataRequest(kvNamespace) {
  */
 export async function onRequest(context) {
     const { request, env } = context;
-    let response;
+    const origin = request.headers.get('Origin');
 
+    // Handle CORS Preflight requests
+    if (request.method === 'OPTIONS') {
+        if (origin && ALLOWED_ORIGINS.includes(origin)) {
+            // Handle valid preflight request
+            return new Response(null, {
+                status: 204, // No Content
+                headers: {
+                    'Access-Control-Allow-Origin': origin,
+                    'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+                    'Access-Control-Allow-Headers': 'Content-Type',
+                    'Access-Control-Max-Age': '86400', // Cache for 1 day
+                    'Vary': 'Origin',
+                },
+            });
+        } else {
+            // Handle invalid preflight request
+            return new Response('Invalid preflight origin.', { status: 403 });
+        }
+    }
+
+    // Handle actual API requests (GET, POST, etc.)
+    let response;
+    const corsHeaders = { 'Vary': 'Origin' };
+
+    // Set CORS headers for non-preflight requests
+    if (origin && ALLOWED_ORIGINS.includes(origin)) {
+        corsHeaders['Access-Control-Allow-Origin'] = origin;
+    }
+    
     try {
         const url = new URL(request.url);
         const kvNamespace = env.TRACKING_DB;
@@ -76,19 +105,18 @@ export async function onRequest(context) {
             throw new Error("KV Namespace not configured");
         }
 
-        if (request.method === 'OPTIONS') {
-            response = new Response(null, { status: 204 });
-        } else {
-            const path = url.pathname.replace('/api/', '');
+        const path = url.pathname.replace('/api/', '');
 
-            if (path === 'track' && request.method === 'POST') {
-                response = await handleTrackRequest(request, kvNamespace);
-            } else if (path === 'data' && request.method === 'GET') {
-                response = await handleDataRequest(kvNamespace);
-            } else {
-                response = new Response('Not Found', { status: 404 });
-            }
+        if (path === 'track' && request.method === 'POST') {
+            response = await handleTrackRequest(request, kvNamespace);
+        } else if (path === 'data' && request.method === 'GET') {
+            response = await handleDataRequest(kvNamespace);
+            // Data dashboard is safe to be viewed from anywhere
+            corsHeaders['Access-Control-Allow-Origin'] = '*';
+        } else {
+            response = new Response('Not Found', { status: 404 });
         }
+
     } catch (err) {
         console.error('An error occurred:', err);
         response = new Response(JSON.stringify({ error: err.message || 'Internal Server Error' }), {
@@ -97,22 +125,12 @@ export async function onRequest(context) {
         });
     }
 
-    const origin = request.headers.get('Origin');
+    // Attach CORS headers to the response
     const newHeaders = new Headers(response.headers);
-
-    if (new URL(request.url).pathname === '/api/data') {
-        newHeaders.set('Access-Control-Allow-Origin', '*');
-    } else if (origin && ALLOWED_ORIGINS.includes(origin)) {
-        newHeaders.set('Access-Control-Allow-Origin', origin);
-        newHeaders.set('Vary', 'Origin');
+    for (const [key, value] of Object.entries(corsHeaders)) {
+        newHeaders.set(key, value);
     }
 
-    if (request.method === 'OPTIONS') {
-        newHeaders.set('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
-        newHeaders.set('Access-Control-Allow-Headers', 'Content-Type');
-        newHeaders.set('Access-Control-Max-Age', '86400');
-    }
-    
     return new Response(response.body, {
         status: response.status,
         statusText: response.statusText,
