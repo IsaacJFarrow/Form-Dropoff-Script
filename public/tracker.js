@@ -4,7 +4,7 @@
     const sessionId = Date.now().toString(36) + Math.random().toString(36).substr(2);
 
     function sendTrackRequest(data) {
-        fetch(`${SERVER_URL}/track`, {
+        fetch(`${SERVER_URL}/api/track`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
