@@ -4,6 +4,56 @@
     let isTrackingActive = false;
     const sessionId = Date.now().toString(36) + Math.random().toString(36).substr(2);
 
+    // === TEAM IP BLOCKING CONFIGURATION ===
+    const TESTING_MODE = false; // Set to true when testing tracking functionality
+    
+    // Add your team's IP addresses here
+    const BLOCKED_IPS = [
+        '222.154.251.228',  // Your current IP
+        // Add more team member IPs here, e.g.:
+        // '203.123.45.67',  // Office IP
+        // '192.168.1.100',  // Another team member IP
+    ];
+
+    // Check if current user should be blocked from tracking
+    async function shouldBlockTracking() {
+        if (TESTING_MODE) {
+            console.log('[Tracker] 🧪 TESTING_MODE is ON - tracking enabled for team IPs');
+            return false;
+        }
+
+        try {
+            // Get user's IP address
+            const response = await fetch('https://api.ipify.org?format=json');
+            const data = await response.json();
+            const userIP = data.ip;
+            
+            if (BLOCKED_IPS.includes(userIP)) {
+                console.log(`[Tracker] 🚫 Team IP detected (${userIP}) - tracking disabled`);
+                console.log('[Tracker] To enable tracking: Set TESTING_MODE = true in tracker.js');
+                return true;
+            }
+            
+            console.log(`[Tracker] ✅ External IP (${userIP}) - tracking enabled`);
+            return false;
+        } catch (error) {
+            console.error('[Tracker] Could not determine IP address:', error);
+            // If we can't determine IP, allow tracking to continue
+            return false;
+        }
+    }
+
+    // Initialize tracking after IP check
+    async function initializeTracking() {
+        const shouldBlock = await shouldBlockTracking();
+        if (shouldBlock) {
+            return; // Exit without initializing tracking
+        }
+
+        // Original tracking initialization
+        observeFormVisibility();
+    }
+
     function sendTrackRequest(data) {
         fetch(`${SERVER_URL}/api/track`, {
             method: 'POST',
@@ -110,6 +160,6 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         console.log('[Tracker] DOMContentLoaded event fired. Initializing observer.');
-        observeFormVisibility();
+        initializeTracking();
     });
 })(); 
