@@ -9,7 +9,7 @@
     <style>
         body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; padding: 2em; background-color: #f8f9fa; color: #212529; }
         .container { max-width: 900px; margin: auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        h1 { text-align: center; margin-bottom: 1rem; }
+        h1 { text-align: center; margin-bottom: 4rem; }
         .controls { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
         .date-filter-group { display: flex; border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden; }
         .date-filter { background-color: white; border: none; padding: 0.5rem 1rem; cursor: pointer; color: #495057; font-size: 0.9rem; transition: background-color 0.2s, color 0.2s; }
@@ -35,39 +35,92 @@
 <body>
     <div class="container">
         <h1>Onboarding Analysis</h1>
-
-        <div class="controls">
-            <div class="date-filter-group">
-                <button class="date-filter active" data-range="all">All Time</button>
-                <button class="date-filter" data-range="1">24 Hours</button>
-                <button class="date-filter" data-range="7">7 Days</button>
-                <button class="date-filter" data-range="30">30 Days</button>
-            </div>
-        </div>
-        <div class="data-info" id="dataInfo"></div>
-
-        <div class="stats">
-            <div class="stat-card">
-                <h3>Form Views</h3>
-                <p id="totalViews">0</p>
-            </div>
-            <div class="stat-card">
-                <h3>Submissions</h3>
-                <p id="totalSubmissions">0</p>
-            </div>
-            <div class="stat-card">
-                <h3>Conversion Rate</h3>
-                <p id="completionRate">0%</p>
-            </div>
-        </div>
         
         <div class="tabs">
-            <button class="tab-link active" onclick="openTab(event, 'Funnel')">Funnel Chart</button>
+            <button class="tab-link active" onclick="openTab(event, 'Current')">Current Funnel (3 Steps)</button>
+            <button class="tab-link" onclick="openTab(event, 'Previous')">Previous Funnel (4 Steps)</button>
+            <button class="tab-link" onclick="openTab(event, 'Analytics')">Analytics</button>
             <button class="tab-link" onclick="openTab(event, 'Submissions')">Submissions Log</button>
         </div>
 
-        <div id="Funnel" class="tab-content" style="display: block;">
-            <canvas id="funnelChart"></canvas>
+        <div id="Current" class="tab-content" style="display: block;">
+            <div style="margin-bottom: 1rem; display: none;">
+                <label for="changeDate">Change Implementation Date:</label>
+                <input type="date" id="changeDate" style="margin-left: 0.5rem; padding: 0.5rem;">
+                <button onclick="updateFunnels()" style="margin-left: 0.5rem; padding: 0.5rem 1rem; background: #0d6efd; color: white; border: none; border-radius: 4px; cursor: pointer;">Update Date</button>
+                <span style="margin-left: 1rem; color: #6c757d; font-size: 0.9rem;">Showing data from this date onwards</span>
+            </div>
+            
+            <div class="stats" style="margin-bottom: 2rem;">
+                <div class="stat-card">
+                    <h3>Form Views</h3>
+                    <p id="currentViews">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Submissions</h3>
+                    <p id="currentSubmissions">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Conversion Rate</h3>
+                    <p id="currentConversion">0%</p>
+                </div>
+            </div>
+            
+            <canvas id="currentChart"></canvas>
+        </div>
+
+        <div id="Previous" class="tab-content">
+            <div style="margin-bottom: 1rem; padding: 1rem; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px;">
+                <strong>Historical Data:</strong> This shows performance data from before the 3-step optimization was implemented.
+            </div>
+            
+            <div class="stats" style="margin-bottom: 2rem;">
+                <div class="stat-card">
+                    <h3>Form Views</h3>
+                    <p id="previousViews">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Submissions</h3>
+                    <p id="previousSubmissions">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Conversion Rate</h3>
+                    <p id="previousConversion">0%</p>
+                </div>
+            </div>
+            
+            <canvas id="previousChart"></canvas>
+        </div>
+
+        <div id="Analytics" class="tab-content">
+            <div class="controls" style="margin-bottom: 1rem;">
+                <div class="date-filter-group">
+                    <button class="date-filter active" data-range="all">All Time</button>
+                    <button class="date-filter" data-range="1">24 Hours</button>
+                    <button class="date-filter" data-range="7">7 Days</button>
+                    <button class="date-filter" data-range="30">30 Days</button>
+                </div>
+            </div>
+            <div class="data-info" id="dataInfo" style="margin-bottom: 2rem;"></div>
+            
+            <div class="stats" style="margin-bottom: 2rem;">
+                <div class="stat-card">
+                    <h3>Form Views</h3>
+                    <p id="totalViews">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Submissions</h3>
+                    <p id="totalSubmissions">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Conversion Rate</h3>
+                    <p id="completionRate">0%</p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; color: #6c757d; margin-top: 2rem;">
+                <p>Overall analytics across all time periods</p>
+            </div>
         </div>
     
         <div id="Submissions" class="tab-content">
@@ -98,72 +151,64 @@
             evt.currentTarget.className += " active";
         }
 
-        const funnelCtx = document.getElementById('funnelChart').getContext('2d');
         Chart.register(ChartDataLabels);
 
-        const funnelChart = new Chart(funnelCtx, {
-            type: 'bar',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Users Reached Step',
-                    data: [],
-                    backgroundColor: '#28a745',
-                    order: 2,
-                    datalabels: {
-                        color: 'white',
-                        anchor: 'center',
-                        align: 'center',
-                        font: {
-                            size: 16,
-                            weight: 'bold'
-                        },
-                        formatter: (value, context) => {
-                            const dataset = context.chart.data.datasets[0].data;
-                            if (context.dataIndex === 0) return null;
-                            const prevValue = dataset[context.dataIndex - 1];
-                            if (prevValue === 0) return null;
-                            const dropOff = ((prevValue - value) / prevValue) * 100;
-                            return dropOff > 0 ? `${dropOff.toFixed(0)}%` : null;
-                        }
-                    }
-                },
-                {
-                    type: 'line',
-                    label: 'Funnel Flow',
-                    data: [],
-                    borderColor: '#6c757d',
-                    backgroundColor: '#6c757d',
-                    tension: 0,
-                    order: 1,
-                    datalabels: {
-                        display: false
-                    }
-                }]
-            },
-            options: {
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    y: { 
-                        beginAtZero: true, 
-                        title: { display: true, text: 'Number of Users' },
-                        ticks: {
-                            precision: 0
-                        }
-                    },
-                    x: { 
-                        title: { display: true, text: 'Form Step' }
-                    }
-                }
-            }
-        });
+        // Initialize current and previous charts
+        let currentChart, previousChart;
 
         async function updateDashboard() {
             try {
-                const response = await fetch('/api/data');
-                const allData = await response.json();
+                // Use production API when running locally for development
+                const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                
+                let allData;
+                if (isLocal) {
+                    console.log('[Dashboard] Running locally - trying production API');
+                    try {
+                        const response = await fetch('https://tracker.whatifweb.co.nz/api/data');
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        allData = await response.json();
+                        console.log('[Dashboard] Successfully fetched production data:', allData.length, 'events');
+                    } catch (apiError) {
+                        console.warn('[Dashboard] Failed to fetch production data:', apiError);
+                        // Fallback to test data for local development
+                        allData = [
+                            {
+                                event: 'formView',
+                                sessionId: 'test-session-1',
+                                timestamp: new Date(Date.now() - 60000).toISOString()
+                            },
+                            {
+                                event: 'stepChange',
+                                step: '1',
+                                sessionId: 'test-session-1',
+                                timestamp: new Date(Date.now() - 50000).toISOString()
+                            },
+                            {
+                                event: 'stepChange',
+                                step: '2',
+                                sessionId: 'test-session-1',
+                                timestamp: new Date(Date.now() - 40000).toISOString()
+                            },
+                            {
+                                event: 'formSubmission',
+                                sessionId: 'test-session-1',
+                                timestamp: new Date(Date.now() - 30000).toISOString()
+                            }
+                        ];
+                        console.log('[Dashboard] Using test data instead');
+                    }
+                } else {
+                    console.log('[Dashboard] Running in production - using local API');
+                    const response = await fetch('/api/data');
+                    allData = await response.json();
+                }
+                
+                // Store data globally for comparison function
+                window.currentData = allData;
+                
                 let filteredData = [...allData];
 
                 // --- Date Range Filter Logic ---
@@ -208,22 +253,8 @@
                     }
                 });
 
-                const maxStep = Object.values(sessions).reduce((max, s) => Math.max(max, s.maxStep), 0);
-                const hasSubmissions = Object.values(sessions).some(s => s.submitted);
-                
-                const labels = Array.from({ length: maxStep }, (_, i) => `Onboarding Step ${i + 1}`);
-                if (hasSubmissions) labels.push('Submitted');
-                
-                const counts = Array(labels.length).fill(0);
-                Object.values(sessions).forEach(session => {
-                    for (let i = 0; i < session.maxStep; i++) counts[i]++;
-                    if (session.submitted && hasSubmissions) counts[maxStep]++;
-                });
-                
-                funnelChart.data.labels = labels;
-                funnelChart.data.datasets[0].data = counts;
-                funnelChart.data.datasets[1].data = counts;
-                funnelChart.update();
+                // Update funnel charts if they exist
+                updateFunnels();
 
                 // --- Stats Card Logic ---
                 const sessionIds = Object.keys(sessions);
@@ -263,8 +294,183 @@
             });
         });
         
+        // Initialize funnel charts
+        function initializeFunnelCharts() {
+            if (currentChart) currentChart.destroy();
+            if (previousChart) previousChart.destroy();
+
+            const chartConfig = {
+                type: 'bar',
+                data: { 
+                    labels: [], 
+                    datasets: [{
+                        label: 'Users Reached Step',
+                        data: [], 
+                        backgroundColor: '#28a745',
+                        order: 2,
+                        datalabels: {
+                            color: 'white',
+                            anchor: 'center',
+                            align: 'center',
+                            font: { size: 16, weight: 'bold' },
+                            formatter: (value, context) => {
+                                const dataset = context.chart.data.datasets[0].data;
+                                if (context.dataIndex === 0) return null;
+                                const prevValue = dataset[context.dataIndex - 1];
+                                if (prevValue === 0) return null;
+                                const dropOff = ((prevValue - value) / prevValue) * 100;
+                                return dropOff > 0 ? `${dropOff.toFixed(0)}%` : null;
+                            }
+                        }
+                    },
+                    {
+                        type: 'line',
+                        label: 'Funnel Flow',
+                        data: [],
+                        borderColor: '#6c757d',
+                        backgroundColor: '#6c757d',
+                        tension: 0,
+                        order: 1,
+                        datalabels: { display: false }
+                    }]
+                },
+                options: {
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Number of Users' }, ticks: { precision: 0 } },
+                        x: { title: { display: true, text: 'Form Step' } }
+                    }
+                }
+            };
+
+            currentChart = new Chart(document.getElementById('currentChart').getContext('2d'), {
+                ...chartConfig,
+                data: { 
+                    ...chartConfig.data, 
+                    datasets: chartConfig.data.datasets.map(ds => ({ ...ds, backgroundColor: ds.backgroundColor === '#28a745' ? '#28a745' : ds.backgroundColor }))
+                }
+            });
+
+            previousChart = new Chart(document.getElementById('previousChart').getContext('2d'), {
+                ...chartConfig,
+                data: { 
+                    ...chartConfig.data, 
+                    datasets: chartConfig.data.datasets.map(ds => ({ ...ds, backgroundColor: ds.backgroundColor === '#28a745' ? '#dc3545' : ds.backgroundColor }))
+                }
+            });
+        }
+
+        function updateFunnels() {
+            if (!window.currentData) return;
+            
+            const changeDateInput = document.getElementById('changeDate');
+            if (!changeDateInput.value) return;
+
+            const changeDate = new Date(changeDateInput.value);
+            const allData = window.currentData;
+            
+            // Split data by change date
+            const currentData = allData.filter(event => new Date(event.timestamp) >= changeDate);
+            const previousData = allData.filter(event => new Date(event.timestamp) < changeDate);
+            
+            // Process current data (3 steps)
+            const currentSessions = {};
+            currentData.forEach(event => {
+                const { sessionId, step, event: eventType } = event;
+                if (!sessionId) return;
+                if (!currentSessions[sessionId]) currentSessions[sessionId] = { maxStep: 0, submitted: false };
+                if (eventType === 'stepChange' && step) {
+                    const stepNum = parseInt(step, 10);
+                    if (stepNum > currentSessions[sessionId].maxStep) currentSessions[sessionId].maxStep = stepNum;
+                } else if (eventType === 'formSubmission') {
+                    currentSessions[sessionId].submitted = true;
+                }
+            });
+            
+            // Process previous data (4 steps)
+            const previousSessions = {};
+            previousData.forEach(event => {
+                const { sessionId, step, event: eventType } = event;
+                if (!sessionId) return;
+                if (!previousSessions[sessionId]) previousSessions[sessionId] = { maxStep: 0, submitted: false };
+                if (eventType === 'stepChange' && step) {
+                    const stepNum = parseInt(step, 10);
+                    if (stepNum > previousSessions[sessionId].maxStep) previousSessions[sessionId].maxStep = stepNum;
+                } else if (eventType === 'formSubmission') {
+                    previousSessions[sessionId].submitted = true;
+                }
+            });
+            
+            // Update current stats
+            const currentViews = Object.keys(currentSessions).length;
+            const currentSubmissions = Object.values(currentSessions).filter(s => s.submitted).length;
+            const currentConversion = currentViews > 0 ? (currentSubmissions / currentViews) * 100 : 0;
+            
+            document.getElementById('currentViews').textContent = currentViews;
+            document.getElementById('currentSubmissions').textContent = currentSubmissions;
+            document.getElementById('currentConversion').textContent = `${currentConversion.toFixed(1)}%`;
+            
+            // Update previous stats
+            const previousViews = Object.keys(previousSessions).length;
+            const previousSubmissionCount = Object.values(previousSessions).filter(s => s.submitted).length;
+            const previousConversion = previousViews > 0 ? (previousSubmissionCount / previousViews) * 100 : 0;
+            
+            document.getElementById('previousViews').textContent = previousViews;
+            document.getElementById('previousSubmissions').textContent = previousSubmissionCount;
+            document.getElementById('previousConversion').textContent = `${previousConversion.toFixed(1)}%`;
+            
+            // Update current chart (3 steps + submission)
+            if (currentChart) {
+                const currentMaxStep = Math.max(...Object.values(currentSessions).map(s => s.maxStep), 3);
+                const currentHasSubmissions = Object.values(currentSessions).some(s => s.submitted);
+                
+                const currentLabels = Array.from({ length: currentMaxStep }, (_, i) => `Step ${i + 1}`);
+                if (currentHasSubmissions) currentLabels.push('Submitted');
+                
+                const currentCounts = Array(currentLabels.length).fill(0);
+                Object.values(currentSessions).forEach(session => {
+                    for (let i = 0; i < session.maxStep; i++) currentCounts[i]++;
+                    if (session.submitted && currentHasSubmissions) currentCounts[currentMaxStep]++;
+                });
+                
+                currentChart.data.labels = currentLabels;
+                currentChart.data.datasets[0].data = currentCounts;
+                currentChart.data.datasets[1].data = currentCounts;
+                currentChart.update();
+            }
+            
+            // Update previous chart (4 steps + submission)
+            if (previousChart) {
+                const previousMaxStep = Math.max(...Object.values(previousSessions).map(s => s.maxStep), 4);
+                const previousHasSubmissions = Object.values(previousSessions).some(s => s.submitted);
+                
+                const previousLabels = Array.from({ length: previousMaxStep }, (_, i) => `Step ${i + 1}`);
+                if (previousHasSubmissions) previousLabels.push('Submitted');
+                
+                const previousCounts = Array(previousLabels.length).fill(0);
+                Object.values(previousSessions).forEach(session => {
+                    for (let i = 0; i < session.maxStep; i++) previousCounts[i]++;
+                    if (session.submitted && previousHasSubmissions) previousCounts[previousMaxStep]++;
+                });
+                
+                previousChart.data.labels = previousLabels;
+                previousChart.data.datasets[0].data = previousCounts;
+                previousChart.data.datasets[1].data = previousCounts;
+                previousChart.update();
+            }
+            
+            console.log(`[Funnels] Current (3-step): ${currentViews} views, ${currentConversion.toFixed(1)}% conversion`);
+            console.log(`[Funnels] Previous (4-step): ${previousViews} views, ${previousConversion.toFixed(1)}% conversion`);
+        }
+
+        // Set default change date to today
+        document.getElementById('changeDate').value = new Date().toISOString().split('T')[0];
+
         updateDashboard();
         setInterval(updateDashboard, 5000);
+        
+        // Initialize funnel charts when page loads
+        setTimeout(initializeFunnelCharts, 100);
     </script>
 </body>
 </html> 
