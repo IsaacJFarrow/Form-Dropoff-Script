@@ -1,15 +1,35 @@
 (function() {
     console.log('[Tracker] Script loaded.');
-    const SERVER_URL = 'https://tracker.whatifweb.co.nz';
+    // Use local development server when testing
+    const SERVER_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+        ? `${window.location.protocol}//${window.location.host}` 
+        : 'https://tracker.whatifweb.co.nz';
+    console.log('[Tracker] Using SERVER_URL:', SERVER_URL);
     let isTrackingActive = false;
     const sessionId = Date.now().toString(36) + Math.random().toString(36).substr(2);
 
     // === TEAM IP BLOCKING CONFIGURATION ===
-    const TESTING_MODE = false; // Set to true when testing tracking functionality
+    const TESTING_MODE = true; // Set to true when testing tracking functionality
+
+    // Optional: runtime override via URL/localStorage for production testing
+    function isTestingOverrideEnabled() {
+        try {
+            const url = new URL(window.location.href);
+            const qp = url.searchParams.get('wiw_test');
+            if (qp === '1') {
+                localStorage.setItem('wiw_test', '1');
+            } else if (qp === '0') {
+                localStorage.removeItem('wiw_test');
+            }
+            return localStorage.getItem('wiw_test') === '1';
+        } catch (e) {
+            return false;
+        }
+    }
     
     // Add your team's IP addresses here
     const BLOCKED_IPS = [
-        '222.154.251.228',  // Your current IP
+       // '222.154.251.228',  // Your current IP
         // Add more team member IPs here, e.g.:
         // '203.123.45.67',  // Office IP
         // '192.168.1.100',  // Another team member IP
@@ -17,8 +37,15 @@
 
     // Check if current user should be blocked from tracking
     async function shouldBlockTracking() {
-        if (TESTING_MODE) {
-            console.log('[Tracker] 🧪 TESTING_MODE is ON - tracking enabled for team IPs');
+        // Check testing mode first - skip IP check entirely if testing is enabled
+        if (TESTING_MODE || isTestingOverrideEnabled()) {
+            console.log('[Tracker] 🧪 TESTING_MODE is ON - tracking enabled (IP check bypassed)');
+            return false;
+        }
+
+        // Only check IP if testing mode is disabled and we have IPs to block
+        if (BLOCKED_IPS.length === 0) {
+            console.log('[Tracker] ✅ No blocked IPs configured - tracking enabled');
             return false;
         }
 
@@ -30,7 +57,7 @@
             
             if (BLOCKED_IPS.includes(userIP)) {
                 console.log(`[Tracker] 🚫 Team IP detected (${userIP}) - tracking disabled`);
-                console.log('[Tracker] To enable tracking: Set TESTING_MODE = true in tracker.js');
+                console.log('[Tracker] To enable tracking: Set TESTING_MODE = true in tracker.js or add ?wiw_test=1 to URL');
                 return true;
             }
             
@@ -38,6 +65,7 @@
             return false;
         } catch (error) {
             console.error('[Tracker] Could not determine IP address:', error);
+            console.log('[Tracker] ⚠️ IP check failed - allowing tracking to continue');
             // If we can't determine IP, allow tracking to continue
             return false;
         }
