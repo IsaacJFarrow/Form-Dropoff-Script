@@ -463,8 +463,10 @@
             console.log(`[Funnels] Previous (4-step): ${previousViews} views, ${previousConversion.toFixed(1)}% conversion`);
         }
 
-        // Set default change date to today
-        document.getElementById('changeDate').value = new Date().toISOString().split('T')[0];
+        // Set default change date to 2 weeks ago (when 3-step form was implemented)
+        const twoWeeksAgo = new Date();
+        twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+        document.getElementById('changeDate').value = twoWeeksAgo.toISOString().split('T')[0];
 
         updateDashboard();
         setInterval(updateDashboard, 5000);
