@@ -1,10 +1,8 @@
 (function() {
-    console.log('[Tracker] Script loaded.');
     // Use local development server when testing
     const SERVER_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
         ? `${window.location.protocol}//${window.location.host}` 
         : 'https://tracker.whatifweb.co.nz';
-    console.log('[Tracker] Using SERVER_URL:', SERVER_URL);
     let isTrackingActive = false;
     const sessionId = Date.now().toString(36) + Math.random().toString(36).substr(2);
 
@@ -39,13 +37,11 @@
     async function shouldBlockTracking() {
         // Check testing mode first - skip IP check entirely if testing is enabled
         if (TESTING_MODE || isTestingOverrideEnabled()) {
-            console.log('[Tracker] 🧪 TESTING_MODE is ON - tracking enabled (IP check bypassed)');
             return false;
         }
 
         // Only check IP if testing mode is disabled and we have IPs to block
         if (BLOCKED_IPS.length === 0) {
-            console.log('[Tracker] ✅ No blocked IPs configured - tracking enabled');
             return false;
         }
 
@@ -56,16 +52,11 @@
             const userIP = data.ip;
             
             if (BLOCKED_IPS.includes(userIP)) {
-                console.log(`[Tracker] 🚫 Team IP detected (${userIP}) - tracking disabled`);
-                console.log('[Tracker] To enable tracking: Set TESTING_MODE = true in tracker.js or add ?wiw_test=1 to URL');
                 return true;
             }
             
-            console.log(`[Tracker] ✅ External IP (${userIP}) - tracking enabled`);
             return false;
         } catch (error) {
-            console.error('[Tracker] Could not determine IP address:', error);
-            console.log('[Tracker] ⚠️ IP check failed - allowing tracking to continue');
             // If we can't determine IP, allow tracking to continue
             return false;
         }
@@ -91,13 +82,9 @@
             body: JSON.stringify({ ...data, sessionId }),
         })
         .then(response => {
-            if (!response.ok) {
-                console.error(`[Tracker] API Error: ${response.status} ${response.statusText}`);
-            } else {
-                console.log(`[Tracker] Successfully sent event: ${data.event}`);
-            }
+            // Request completed
         })
-        .catch(error => console.error('[Tracker] Network Error:', error));
+        .catch(error => {});
     }
 
     function debounce(func, wait) {
@@ -115,14 +102,11 @@
     function observeFormVisibility() {
         const formElement = document.querySelector('.multi-step-form_component');
         if (!formElement) {
-            console.error('[Tracker] Could not find form element with selector: .multi-step-form_component');
             return;
         }
-        console.log('[Tracker] Form element found. Observing for visibility.');
 
         const checkAndStartTracking = () => {
             if (window.getComputedStyle(formElement).display !== 'none' && !isTrackingActive) {
-                console.log('[Tracker] Form is visible. Starting tracking session.');
                 isTrackingActive = true;
                 sendTrackRequest({ event: 'formView' });
                 startStepTracking();
@@ -139,10 +123,8 @@
     function startStepTracking() {
         const currentStepElement = document.querySelector('[data-text="current-step"]');
         if (!currentStepElement) {
-            console.error('[Tracker] Could not find step element with selector: [data-text="current-step"]');
             return;
         }
-        console.log('[Tracker] Step element found. Observing for changes.');
 
         let lastStep = currentStepElement.textContent.trim();
         sendTrackRequest({ event: 'stepChange', step: lastStep });
@@ -150,7 +132,6 @@
         const processStepChange = () => {
             const newStep = currentStepElement.textContent.trim();
             if (newStep && newStep !== lastStep) {
-                console.log(`[Tracker] Detected step change to: ${newStep}`);
                 lastStep = newStep;
                 sendTrackRequest({ event: 'stepChange', step: newStep });
             }
@@ -168,15 +149,12 @@
     function observeFormSubmission() {
         const successElement = document.querySelector('.form_message-success-wrapper');
         if (!successElement) {
-            console.error('[Tracker] Could not find success element with selector: .form_message-success-wrapper');
             return;
         }
-        console.log('[Tracker] Success element found. Observing for submission.');
 
         let submissionSent = false;
         const observer = new MutationObserver(() => {
             if (window.getComputedStyle(successElement).display !== 'none' && !submissionSent) {
-                console.log('[Tracker] Form submission detected.');
                 submissionSent = true;
                 sendTrackRequest({ event: 'formSubmission' });
                 observer.disconnect();
@@ -187,7 +165,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        console.log('[Tracker] DOMContentLoaded event fired. Initializing observer.');
         initializeTracking();
     });
 })(); 

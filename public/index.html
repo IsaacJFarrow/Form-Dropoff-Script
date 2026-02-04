@@ -163,16 +163,13 @@
                 
                 let allData;
                 if (isLocal) {
-                    console.log('[Dashboard] Running locally - trying production API');
                     try {
                         const response = await fetch('https://tracker.whatifweb.co.nz/api/data');
                         if (!response.ok) {
                             throw new Error(`HTTP error! status: ${response.status}`);
                         }
                         allData = await response.json();
-                        console.log('[Dashboard] Successfully fetched production data:', allData.length, 'events');
                     } catch (apiError) {
-                        console.warn('[Dashboard] Failed to fetch production data:', apiError);
                         // Fallback to test data for local development
                         allData = [
                             {
@@ -198,10 +195,8 @@
                                 timestamp: new Date(Date.now() - 30000).toISOString()
                             }
                         ];
-                        console.log('[Dashboard] Using test data instead');
                     }
                 } else {
-                    console.log('[Dashboard] Running in production - using local API');
                     const response = await fetch('/api/data');
                     allData = await response.json();
                 }
@@ -282,7 +277,6 @@
                 });
 
             } catch (error) {
-                console.error('Error fetching or updating dashboard:', error);
             }
         }
 
@@ -459,8 +453,6 @@
                 previousChart.update();
             }
             
-            console.log(`[Funnels] Current (3-step): ${currentViews} views, ${currentConversion.toFixed(1)}% conversion`);
-            console.log(`[Funnels] Previous (4-step): ${previousViews} views, ${previousConversion.toFixed(1)}% conversion`);
         }
 
         // Set default change date to when the 3-step form was actually implemented

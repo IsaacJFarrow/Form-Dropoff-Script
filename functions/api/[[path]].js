@@ -47,7 +47,6 @@ async function handleTrackRequest(request, kvNamespace) {
 
     const key = `event:${eventData.timestamp}:${Math.random().toString(36).substr(2, 9)}`;
     await kvNamespace.put(key, JSON.stringify(eventData));
-    console.log('Tracking event received:', eventData);
     return new Response('Event tracked', { status: 200 });
 }
 
@@ -137,7 +136,6 @@ export async function onRequest(context) {
         }
 
     } catch (err) {
-        console.error('An error occurred:', err);
         const errorMessage = err.message || 'Internal Server Error';
         response = new Response(JSON.stringify({ error: errorMessage, details: err.stack }), {
             status: 500,
