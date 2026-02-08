@@ -11,11 +11,6 @@
         .container { max-width: 900px; margin: auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         h1 { text-align: center; margin-bottom: 4rem; }
         .controls { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
-        .date-filter-group { display: flex; border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden; }
-        .date-filter { background-color: white; border: none; padding: 0.5rem 1rem; cursor: pointer; color: #495057; font-size: 0.9rem; transition: background-color 0.2s, color 0.2s; }
-        .date-filter:not(:last-child) { border-right: 1px solid #dee2e6; }
-        .date-filter.active { background-color: #0d6efd; color: white; }
-        .date-filter:hover:not(.active) { background-color: #f8f9fa; }
         .data-info { text-align: right; color: #6c757d; font-size: 0.8rem; margin-top: -0.75rem; margin-bottom: 1rem; }
         .stats { display: flex; justify-content: space-around; text-align: center; margin-bottom: 2rem; }
         .stat-card { padding: 1rem; border-radius: 8px; background-color: #f8f9fa; flex-basis: 30%; }
@@ -25,6 +20,10 @@
         .tab-link { background-color: inherit; float: left; border: none; outline: none; cursor: pointer; padding: 14px 16px; transition: 0.3s; font-size: 1rem; border-bottom: 2px solid transparent; }
         .tab-link:hover { border-bottom: 2px solid #ddd; }
         .tab-link.active { font-weight: bold; border-bottom: 2px solid #0d6efd; }
+        .sub-tabs { overflow: hidden; border-bottom: 1px solid #e9ecef; margin-bottom: 1.5rem; padding: 0.5rem; }
+        .sub-tab-link { background-color: transparent; float: left; border: none; outline: none; cursor: pointer; padding: 8px 12px; transition: 0.3s; font-size: 0.9rem; border-radius: 4px; margin-right: 0.5rem; }
+        .sub-tab-link:hover { background-color: #e9ecef; }
+        .sub-tab-link.active { background-color: #0d6efd; color: white; font-weight: 500; }
         .tab-content { display: none; }
         table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
         th, td { border: 1px solid #dee2e6; padding: 12px; text-align: left; }
@@ -93,33 +92,66 @@
         </div>
 
         <div id="Analytics" class="tab-content">
-            <div class="controls" style="margin-bottom: 1rem;">
-                <div class="date-filter-group">
-                    <button class="date-filter active" data-range="all">All Time</button>
-                    <button class="date-filter" data-range="1">24 Hours</button>
-                    <button class="date-filter" data-range="7">7 Days</button>
-                    <button class="date-filter" data-range="30">30 Days</button>
-                </div>
+            <div class="sub-tabs">
+                <button class="sub-tab-link active" onclick="openSubTab(event, 'FunnelAnalysis')">Funnel Analysis</button>
+                <button class="sub-tab-link" onclick="openSubTab(event, 'MonthlyTrends')">Monthly Trends</button>
             </div>
-            <div class="data-info" id="dataInfo" style="margin-bottom: 2rem;"></div>
-            
-            <div class="stats" style="margin-bottom: 2rem;">
-                <div class="stat-card">
-                    <h3>Form Views</h3>
-                    <p id="totalViews">0</p>
+
+            <div id="FunnelAnalysis" class="sub-tab-content" style="display: block;">
+                <div class="controls" style="margin-bottom: 1rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <label for="monthPicker" style="font-size: 0.9rem; color: #6c757d;">Month:</label>
+                        <select id="monthPicker" style="padding: 0.5rem; border: 1px solid #dee2e6; border-radius: 4px; font-size: 0.9rem;">
+                            <option value="">All Months</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <h3>Submissions</h3>
-                    <p id="totalSubmissions">0</p>
+                
+                <div class="stats" style="margin-bottom: 2rem;">
+                    <div class="stat-card">
+                        <h3>Form Views</h3>
+                        <p id="totalViews">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Submissions</h3>
+                        <p id="totalSubmissions">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Conversion Rate</h3>
+                        <p id="completionRate">0%</p>
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <h3>Conversion Rate</h3>
-                    <p id="completionRate">0%</p>
-                </div>
+                
+                <canvas id="analyticsChart" style="margin-bottom: 2rem;"></canvas>
+                
             </div>
-            
-            <div style="text-align: center; color: #6c757d; margin-top: 2rem;">
-                <p>Overall analytics across all time periods</p>
+
+            <div id="MonthlyTrends" class="sub-tab-content" style="display: none;">
+                <div style="margin-bottom: 2rem;">
+                    <h2 style="text-align: center; margin-bottom: 1rem; color: #495057;">Monthly Performance Trends</h2>
+                    <p style="text-align: center; color: #6c757d; margin-bottom: 2rem;">Track form views and submissions over time to identify growth patterns and seasonal trends</p>
+                </div>
+                
+                <div class="stats" style="margin-bottom: 2rem;">
+                    <div class="stat-card">
+                        <h3>Total Months</h3>
+                        <p id="totalMonths">0</p>
+                    </div>
+                <div class="stat-card">
+                    <h3>Best Month (Views)</h3>
+                    <p id="bestMonth">-</p>
+                </div>
+                    <div class="stat-card">
+                        <h3>Avg Monthly Growth</h3>
+                        <p id="avgGrowth">0%</p>
+                    </div>
+                </div>
+                
+                <canvas id="trendsChart" style="margin-bottom: 2rem;"></canvas>
+                
+                <div style="text-align: center; color: #6c757d;">
+                    <p>Monthly trends show all available historical data</p>
+                </div>
             </div>
         </div>
     
@@ -151,10 +183,24 @@
             evt.currentTarget.className += " active";
         }
 
+        function openSubTab(evt, subTabName) {
+            let i, subtabcontent, subtablinks;
+            subtabcontent = document.getElementsByClassName("sub-tab-content");
+            for (i = 0; i < subtabcontent.length; i++) {
+                subtabcontent[i].style.display = "none";
+            }
+            subtablinks = document.getElementsByClassName("sub-tab-link");
+            for (i = 0; i < subtablinks.length; i++) {
+                subtablinks[i].className = subtablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(subTabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+
         Chart.register(ChartDataLabels);
 
         // Initialize current and previous charts
-        let currentChart, previousChart;
+        let currentChart, previousChart, analyticsChart, trendsChart;
 
         async function updateDashboard() {
             try {
@@ -204,33 +250,11 @@
                 // Store data globally for comparison function
                 window.currentData = allData;
                 
-                let filteredData = [...allData];
-
-                // --- Date Range Filter Logic ---
-                const activeButton = document.querySelector('.date-filter.active');
-                const dateRange = activeButton ? activeButton.dataset.range : 'all';
-
-                if (dateRange !== 'all') {
-                    const days = parseInt(dateRange, 10);
-                    const cutoffDate = new Date();
-                    // Set hours, minutes, seconds, and ms to 0 to get the start of the day
-                    cutoffDate.setHours(0, 0, 0, 0);
-                    cutoffDate.setDate(cutoffDate.getDate() - days);
-                    
-                    filteredData = allData.filter(event => {
-                        if (!event || !event.timestamp) return false;
-                        const eventDate = new Date(event.timestamp);
-                        return eventDate >= cutoffDate;
-                    });
-                }
+                // Populate month picker with available data
+                populateMonthPicker(allData);
                 
-                // --- Update UI with data info ---
-                const dataInfoEl = document.getElementById('dataInfo');
-                if (dateRange === 'all') {
-                    dataInfoEl.textContent = `Showing all ${allData.length} events.`;
-                } else {
-                    dataInfoEl.textContent = `Showing ${filteredData.length} events from the last ${dateRange} day(s) (${allData.length} total).`;
-                }
+                // Apply enhanced date filtering
+                let filteredData = applyDateFilters(allData);
 
                 // --- KPI & Chart Logic ---
                 const sessions = {};
@@ -250,6 +274,12 @@
 
                 // Update funnel charts if they exist
                 updateFunnels();
+                
+                // Update analytics chart
+                updateAnalyticsChart(filteredData);
+                
+                // Update trends chart (always use all data for trends)
+                updateTrendsChart(allData);
 
                 // --- Stats Card Logic ---
                 const sessionIds = Object.keys(sessions);
@@ -280,13 +310,6 @@
             }
         }
 
-        document.querySelectorAll('.date-filter').forEach(button => {
-            button.addEventListener('click', (e) => {
-                document.querySelectorAll('.date-filter').forEach(btn => btn.classList.remove('active'));
-                e.currentTarget.classList.add('active');
-                updateDashboard();
-            });
-        });
         
         // Initialize funnel charts
         function initializeFunnelCharts() {
@@ -460,11 +483,365 @@
         const implementationDate = new Date('2025-08-22'); // Adjust this to your actual implementation date
         document.getElementById('changeDate').value = implementationDate.toISOString().split('T')[0];
 
+        // Initialize analytics chart
+        function initializeAnalyticsChart() {
+            if (analyticsChart) analyticsChart.destroy();
+            
+            const ctx = document.getElementById('analyticsChart').getContext('2d');
+            analyticsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Users Reached Step',
+                        data: [],
+                        backgroundColor: '#0d6efd',
+                        order: 2,
+                        datalabels: {
+                            color: 'white',
+                            anchor: 'center',
+                            align: 'center',
+                            font: { size: 14, weight: 'bold' },
+                            formatter: (value, context) => {
+                                const dataset = context.chart.data.datasets[0].data;
+                                if (context.dataIndex === 0) return null;
+                                const prevValue = dataset[context.dataIndex - 1];
+                                if (prevValue === 0) return null;
+                                const dropOff = ((prevValue - value) / prevValue) * 100;
+                                return dropOff > 0 ? `${dropOff.toFixed(0)}%` : null;
+                            }
+                        }
+                    },
+                    {
+                        type: 'line',
+                        label: 'Funnel Flow',
+                        data: [],
+                        borderColor: '#6c757d',
+                        backgroundColor: '#6c757d',
+                        tension: 0,
+                        order: 1,
+                        datalabels: { display: false }
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { 
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Form Funnel Analysis'
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            title: { display: true, text: 'Number of Users' }, 
+                            ticks: { precision: 0 } 
+                        },
+                        x: { title: { display: true, text: 'Form Step' } }
+                    }
+                }
+            });
+        }
+
+        // Update analytics chart with current filtered data
+        function updateAnalyticsChart(filteredData) {
+            if (!analyticsChart || !filteredData) return;
+            
+            // Process sessions for analytics chart
+            const sessions = {};
+            filteredData.forEach(event => {
+                const { sessionId, step, event: eventType } = event;
+                if (!sessionId) return;
+                if (!sessions[sessionId]) {
+                    sessions[sessionId] = { maxStep: 0, submitted: false };
+                }
+                if (eventType === 'stepChange' && step) {
+                    const stepNum = parseInt(step, 10);
+                    if (stepNum > sessions[sessionId].maxStep) sessions[sessionId].maxStep = stepNum;
+                } else if (eventType === 'formSubmission') {
+                    sessions[sessionId].submitted = true;
+                }
+            });
+            
+            // Calculate funnel data
+            const maxStep = Math.max(...Object.values(sessions).map(s => s.maxStep), 3);
+            const hasSubmissions = Object.values(sessions).some(s => s.submitted);
+            
+            const labels = Array.from({ length: maxStep }, (_, i) => `Step ${i + 1}`);
+            if (hasSubmissions) labels.push('Submitted');
+            
+            const counts = Array(labels.length).fill(0);
+            Object.values(sessions).forEach(session => {
+                for (let i = 0; i < session.maxStep; i++) counts[i]++;
+                if (session.submitted && hasSubmissions) counts[maxStep]++;
+            });
+            
+            analyticsChart.data.labels = labels;
+            analyticsChart.data.datasets[0].data = counts;
+            analyticsChart.data.datasets[1].data = counts;
+            analyticsChart.update();
+        }
+
+        // Initialize trends chart
+        function initializeTrendsChart() {
+            if (trendsChart) trendsChart.destroy();
+            
+            const ctx = document.getElementById('trendsChart').getContext('2d');
+            trendsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Form Views',
+                        data: [],
+                        backgroundColor: 'rgba(13, 110, 253, 0.8)',
+                        borderColor: '#0d6efd',
+                        borderWidth: 1,
+                        order: 1,
+                        datalabels: {
+                            color: '#000000',
+                            anchor: 'end',
+                            align: 'top',
+                            font: { size: 12, weight: 'bold' },
+                            formatter: (value) => value > 0 ? value : ''
+                        }
+                    },
+                    {
+                        label: 'Form Submissions',
+                        data: [],
+                        backgroundColor: 'rgba(40, 167, 69, 0.8)',
+                        borderColor: '#28a745',
+                        borderWidth: 1,
+                        order: 2,
+                        datalabels: {
+                            color: '#000000',
+                            anchor: 'end',
+                            align: 'top',
+                            font: { size: 12, weight: 'bold' },
+                            formatter: (value) => value > 0 ? value : ''
+                        }
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Monthly Performance Trends',
+                            font: { size: 16, weight: 'bold' }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                afterLabel: function(context) {
+                                    if (context.datasetIndex === 0) {
+                                        // Calculate conversion rate for this month
+                                        const views = context.parsed.y;
+                                        const submissions = trendsChart.data.datasets[1].data[context.dataIndex];
+                                        const rate = views > 0 ? ((submissions / views) * 100).toFixed(1) : 0;
+                                        return `Conversion Rate: ${rate}%`;
+                                    }
+                                    return '';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Events'
+                            },
+                            ticks: { precision: 0 }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Month'
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                }
+            });
+        }
+
+        // Process data for monthly trends
+        function processMonthlyTrends(allData) {
+            const monthlyData = {};
+            
+            // Group data by month
+            allData.forEach(event => {
+                if (!event || !event.timestamp || !event.sessionId) return;
+                
+                const date = new Date(event.timestamp);
+                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                const monthLabel = date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+                
+                if (!monthlyData[monthKey]) {
+                    monthlyData[monthKey] = {
+                        label: monthLabel,
+                        sessions: new Set(),
+                        submissions: new Set()
+                    };
+                }
+                
+                // Track unique sessions (form views)
+                if (event.event === 'formView' || event.event === 'stepChange') {
+                    monthlyData[monthKey].sessions.add(event.sessionId);
+                }
+                
+                // Track submissions
+                if (event.event === 'formSubmission') {
+                    monthlyData[monthKey].submissions.add(event.sessionId);
+                }
+            });
+            
+            // Convert to arrays and sort by month
+            const sortedMonths = Object.keys(monthlyData)
+                .sort((a, b) => a.localeCompare(b))
+                .map(monthKey => ({
+                    key: monthKey,
+                    label: monthlyData[monthKey].label,
+                    views: monthlyData[monthKey].sessions.size,
+                    submissions: monthlyData[monthKey].submissions.size
+                }));
+            
+            return sortedMonths;
+        }
+
+        // Update trends chart and stats
+        function updateTrendsChart(allData) {
+            if (!trendsChart || !allData) return;
+            
+            const monthlyTrends = processMonthlyTrends(allData);
+            
+            // Update chart data
+            trendsChart.data.labels = monthlyTrends.map(month => month.label);
+            trendsChart.data.datasets[0].data = monthlyTrends.map(month => month.views);
+            trendsChart.data.datasets[1].data = monthlyTrends.map(month => month.submissions);
+            trendsChart.update();
+            
+            // Update stats
+            const totalMonths = monthlyTrends.length;
+            const bestMonth = monthlyTrends.reduce((best, current) => 
+                current.views > best.views ? current : best, 
+                { views: 0, label: '-' }
+            );
+            
+            // Calculate average growth rate
+            let avgGrowth = 0;
+            if (monthlyTrends.length > 1) {
+                const growthRates = [];
+                for (let i = 1; i < monthlyTrends.length; i++) {
+                    const prev = monthlyTrends[i - 1].views;
+                    const curr = monthlyTrends[i].views;
+                    if (prev > 0) {
+                        growthRates.push(((curr - prev) / prev) * 100);
+                    }
+                }
+                if (growthRates.length > 0) {
+                    avgGrowth = growthRates.reduce((sum, rate) => sum + rate, 0) / growthRates.length;
+                }
+            }
+            
+            document.getElementById('totalMonths').textContent = totalMonths;
+            document.getElementById('bestMonth').textContent = bestMonth.label;
+            document.getElementById('avgGrowth').textContent = `${avgGrowth >= 0 ? '+' : ''}${avgGrowth.toFixed(1)}%`;
+        }
+
+        // Track if month picker has been populated to avoid resetting selection
+        let monthPickerInitialized = false;
+
+        // Populate month picker with available months
+        function populateMonthPicker(allData) {
+            const monthPicker = document.getElementById('monthPicker');
+            const currentSelection = monthPicker.value; // Preserve current selection
+            const months = new Set();
+            
+            allData.forEach(event => {
+                if (event && event.timestamp) {
+                    const date = new Date(event.timestamp);
+                    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                    const monthLabel = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+                    months.add(JSON.stringify({ key: monthKey, label: monthLabel }));
+                }
+            });
+            
+            // Clear existing options except "All Months"
+            monthPicker.innerHTML = '<option value="">All Months</option>';
+            
+            // Sort months and add to picker
+            const sortedMonths = Array.from(months)
+                .map(m => JSON.parse(m))
+                .sort((a, b) => b.key.localeCompare(a.key));
+            
+            sortedMonths.forEach(month => {
+                const option = document.createElement('option');
+                option.value = month.key;
+                option.textContent = month.label;
+                monthPicker.appendChild(option);
+            });
+            
+            // Restore previous selection if it still exists, otherwise set default
+            if (currentSelection && sortedMonths.some(month => month.key === currentSelection)) {
+                monthPicker.value = currentSelection;
+            } else if (!monthPickerInitialized) {
+                // Only set default on first initialization
+                const currentDate = new Date();
+                const currentMonthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+                const hasCurrentMonth = sortedMonths.some(month => month.key === currentMonthKey);
+                
+                if (hasCurrentMonth) {
+                    monthPicker.value = currentMonthKey;
+                } else if (sortedMonths.length > 0) {
+                    // If current month doesn't exist in data, select the most recent month
+                    monthPicker.value = sortedMonths[0].key;
+                }
+                monthPickerInitialized = true;
+            }
+        }
+
+        // Enhanced date filtering
+        function applyDateFilters(allData) {
+            let filteredData = [...allData];
+            
+            // Check month picker
+            const selectedMonth = document.getElementById('monthPicker').value;
+            if (selectedMonth) {
+                const [year, month] = selectedMonth.split('-');
+                filteredData = allData.filter(event => {
+                    if (!event || !event.timestamp) return false;
+                    const eventDate = new Date(event.timestamp);
+                    return eventDate.getFullYear() == year && (eventDate.getMonth() + 1) == month;
+                });
+            }
+            
+            return filteredData;
+        }
+
+        // Add event listeners for enhanced filtering
+        document.getElementById('monthPicker').addEventListener('change', () => {
+            updateDashboard();
+        });
+
         updateDashboard();
         setInterval(updateDashboard, 5000);
         
         // Initialize funnel charts when page loads
         setTimeout(initializeFunnelCharts, 100);
+        setTimeout(initializeAnalyticsChart, 100);
+        setTimeout(initializeTrendsChart, 100);
     </script>
 </body>
 </html> 
