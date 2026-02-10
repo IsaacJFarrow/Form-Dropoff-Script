@@ -7,7 +7,7 @@
     const sessionId = Date.now().toString(36) + Math.random().toString(36).substr(2);
 
     // === TEAM IP BLOCKING CONFIGURATION ===
-    const TESTING_MODE = true; // Set to true when testing tracking functionality
+    const TESTING_MODE = false; // Set to true when testing tracking functionality
 
     // Optional: runtime override via URL/localStorage for production testing
     function isTestingOverrideEnabled() {
