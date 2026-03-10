@@ -2,7 +2,7 @@
     // Use local development server when testing
     const SERVER_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
         ? `${window.location.protocol}//${window.location.host}` 
-        : 'https://tracker.whatifweb.co.nz';
+        : 'https://whatifweb.co.nz/tracker';
     let isTrackingActive = false;
     const sessionId = Date.now().toString(36) + Math.random().toString(36).substr(2);
 
