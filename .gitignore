@@ -1,9 +1,16 @@
 # Dependencies
 /node_modules
+node_modules/
 
-# Local Database
+# Local Database (exclude raw JSON data dumps)
 *.json
+!package.json
 !package-lock.json
+!tsconfig.json
+!wrangler.json
+
+# Migration data (contains real user data — do not commit)
+import.sql
 
 # Environment
 .env*
@@ -11,6 +18,10 @@
 
 # Wrangler
 .wrangler/
+
+# Astro
+dist/
+.astro/
 
 # OS / Editor specific
 .DS_Store

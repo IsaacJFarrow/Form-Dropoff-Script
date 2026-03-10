@@ -1,0 +1,850 @@
+---
+// Form Dropoff Tracker Dashboard
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>What IF Web — Onboarding Analysis</title>
+  <!-- Generalsans — What IF Web v2 typeface -->
+  <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+  <style>
+    /* ── Brand tokens ─────────────────────────────── */
+    :root {
+      --color-black:       #0f2756;
+      --color-dark-grey:   #2d3f61;
+      --color-light-grey:  #f8f1eb;
+      --color-white:       #fff9f3;
+      --color-blue:        #0053ff;
+      --color-light-blue:  #bac9e6;
+      --color-green:       #95f99f;
+      --color-red:         #ff6c80;
+      --color-orange:      #eb5b30;
+
+      --bg-primary:        var(--color-white);
+      --bg-secondary:      var(--color-light-grey);
+      --text-primary:      var(--color-black);
+      --text-secondary:    var(--color-dark-grey);
+      --border-primary:    var(--color-black);
+      --accent:            var(--color-blue);
+    }
+
+    /* ── Reset / base ─────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: 'General Sans', system-ui, sans-serif;
+      font-size: 1rem;
+      line-height: 1.5;
+      background-color: var(--bg-secondary);
+      color: var(--text-primary);
+      margin: 0;
+      padding: 2rem 1rem;
+    }
+
+    /* ── Container ────────────────────────────────── */
+    .container-medium {
+      width: 100%;
+      max-width: 80rem;
+      margin-right: auto;
+      margin-left: auto;
+      background: var(--bg-primary);
+      padding: 2.5rem 3rem;
+      border-radius: 1.5rem;
+      border: 2px solid var(--border-primary);
+    }
+
+    /* ── Headings ─────────────────────────────────── */
+    h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      letter-spacing: -0.04rem;
+      color: var(--text-primary);
+      text-align: center;
+      margin: 0 0 3rem 0;
+    }
+
+    h3 {
+      margin: 0 0 0.5rem 0;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+
+    /* ── Stat cards ───────────────────────────────── */
+    .stats {
+      display: flex;
+      justify-content: space-around;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      flex: 1;
+      padding: 1.5rem;
+      border-radius: 1rem;
+      background-color: var(--bg-secondary);
+      border: 1.5px solid var(--color-light-blue);
+      text-align: center;
+    }
+
+    .stat-card p {
+      margin: 0;
+      font-size: 2.25rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.05rem;
+    }
+
+    /* ── Tabs ─────────────────────────────────────── */
+    .tabs {
+      display: flex;
+      gap: 0.25rem;
+      border-bottom: 2px solid var(--color-light-blue);
+      margin-bottom: 1.5rem;
+      padding-bottom: 0;
+    }
+
+    .tab-link {
+      background: transparent;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      padding: 0.75rem 1.25rem;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      border-radius: 0.5rem 0.5rem 0 0;
+      transition: color 150ms ease, border-color 150ms ease;
+    }
+
+    .tab-link:hover {
+      color: var(--text-primary);
+      border-bottom-color: var(--color-light-blue);
+    }
+
+    .tab-link.active {
+      color: var(--accent);
+      font-weight: 600;
+      border-bottom-color: var(--accent);
+    }
+
+    .tab-content { display: none; }
+
+    /* ── Sub-tabs ─────────────────────────────────── */
+    .sub-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .sub-tab-link {
+      background: transparent;
+      border: 1.5px solid var(--color-light-blue);
+      border-radius: 20rem;
+      outline: none;
+      cursor: pointer;
+      padding: 0.5rem 1.25rem;
+      font-family: inherit;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+    }
+
+    .sub-tab-link:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .sub-tab-link.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .sub-tab-content { display: none; }
+
+    /* ── Controls row ─────────────────────────────── */
+    .controls {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .controls label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .controls select {
+      padding: 0.4rem 0.75rem;
+      border: 1.5px solid var(--color-light-blue);
+      border-radius: 20rem;
+      font-family: inherit;
+      font-size: 0.875rem;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      cursor: pointer;
+    }
+
+    .controls select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    /* ── Data info ────────────────────────────────── */
+    .data-info {
+      text-align: right;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      margin-top: -0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    /* ── Notice banner ────────────────────────────── */
+    .notice {
+      margin-bottom: 1.5rem;
+      padding: 1rem 1.25rem;
+      background-color: var(--bg-secondary);
+      border: 1.5px solid var(--color-light-blue);
+      border-radius: 0.75rem;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .notice strong { color: var(--text-primary); }
+
+    /* ── Monthly trends heading ───────────────────── */
+    .trends-intro {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .trends-intro h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0 0 0.5rem 0;
+    }
+
+    .trends-intro p {
+      color: var(--text-secondary);
+      margin: 0;
+    }
+
+    /* ── Table ────────────────────────────────────── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      border: 1px solid var(--color-light-blue);
+      padding: 0.75rem 1rem;
+      text-align: left;
+    }
+
+    th {
+      background-color: var(--bg-secondary);
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+    }
+
+    tbody tr:nth-child(odd) { background-color: var(--bg-secondary); }
+    tbody tr:hover { background-color: var(--color-light-blue); }
+
+    /* ── Canvas ───────────────────────────────────── */
+    canvas { margin-bottom: 2rem; }
+
+    /* ── Trends footer note ───────────────────────── */
+    .trends-note {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      margin-top: -1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container-medium">
+    <h1>Onboarding Analysis</h1>
+
+    <div class="tabs">
+      <button class="tab-link active" onclick="openTab(event, 'Current')">Current Funnel (3 Steps)</button>
+      <button class="tab-link" onclick="openTab(event, 'Previous')">Previous Funnel (4 Steps)</button>
+      <button class="tab-link" onclick="openTab(event, 'Analytics')">Analytics</button>
+      <button class="tab-link" onclick="openTab(event, 'Submissions')">Submissions Log</button>
+    </div>
+
+    <!-- Current Funnel -->
+    <div id="Current" class="tab-content" style="display: block;">
+      <div style="display: none;">
+        <label for="changeDate">Change Implementation Date:</label>
+        <input type="date" id="changeDate">
+        <button onclick="updateFunnels()">Update Date</button>
+        <span>Showing data from this date onwards</span>
+      </div>
+
+      <div class="stats" style="margin-bottom: 2rem;">
+        <div class="stat-card">
+          <h3>Form Views</h3>
+          <p id="currentViews">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>Submissions</h3>
+          <p id="currentSubmissions">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>Conversion Rate</h3>
+          <p id="currentConversion">0%</p>
+        </div>
+      </div>
+
+      <canvas id="currentChart"></canvas>
+    </div>
+
+    <!-- Previous Funnel -->
+    <div id="Previous" class="tab-content">
+      <div class="notice">
+        <strong>Historical Data:</strong> Performance data from before the 3-step optimisation was implemented (22/08/2025).
+      </div>
+
+      <div class="stats" style="margin-bottom: 2rem;">
+        <div class="stat-card">
+          <h3>Form Views</h3>
+          <p id="previousViews">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>Submissions</h3>
+          <p id="previousSubmissions">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>Conversion Rate</h3>
+          <p id="previousConversion">0%</p>
+        </div>
+      </div>
+
+      <canvas id="previousChart"></canvas>
+    </div>
+
+    <!-- Analytics -->
+    <div id="Analytics" class="tab-content">
+      <div class="sub-tabs">
+        <button class="sub-tab-link active" onclick="openSubTab(event, 'FunnelAnalysis')">Funnel Analysis</button>
+        <button class="sub-tab-link" onclick="openSubTab(event, 'MonthlyTrends')">Monthly Trends</button>
+      </div>
+
+      <div id="FunnelAnalysis" class="sub-tab-content" style="display: block;">
+        <div class="controls">
+          <label for="monthPicker">Month:</label>
+          <select id="monthPicker">
+            <option value="">All Months</option>
+          </select>
+        </div>
+
+        <div class="stats" style="margin-bottom: 2rem;">
+          <div class="stat-card">
+            <h3>Form Views</h3>
+            <p id="totalViews">0</p>
+          </div>
+          <div class="stat-card">
+            <h3>Submissions</h3>
+            <p id="totalSubmissions">0</p>
+          </div>
+          <div class="stat-card">
+            <h3>Conversion Rate</h3>
+            <p id="completionRate">0%</p>
+          </div>
+        </div>
+
+        <canvas id="analyticsChart" style="margin-bottom: 2rem;"></canvas>
+      </div>
+
+      <div id="MonthlyTrends" class="sub-tab-content" style="display: none;">
+        <div class="trends-intro">
+          <h2>Monthly Performance Trends</h2>
+          <p>Track form views and submissions over time to identify growth patterns and seasonal trends</p>
+        </div>
+
+        <div class="stats" style="margin-bottom: 2rem;">
+          <div class="stat-card">
+            <h3>Total Months</h3>
+            <p id="totalMonths">0</p>
+          </div>
+          <div class="stat-card">
+            <h3>Best Month (Views)</h3>
+            <p id="bestMonth">-</p>
+          </div>
+          <div class="stat-card">
+            <h3>Avg Monthly Growth</h3>
+            <p id="avgGrowth">0%</p>
+          </div>
+        </div>
+
+        <canvas id="trendsChart" style="margin-bottom: 2rem;"></canvas>
+
+        <p class="trends-note">Monthly trends show all available historical data</p>
+      </div>
+    </div>
+
+    <!-- Submissions Log -->
+    <div id="Submissions" class="tab-content">
+      <table id="submissionsTable">
+        <thead>
+          <tr>
+            <th>Submission Timestamp</th>
+            <th>Session ID</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script is:inline>
+    // Brand colours for charts
+    const BLUE   = '#0053ff';
+    const GREEN  = '#95f99f';
+    const RED    = '#ff6c80';
+    const GREY   = '#bac9e6';
+    const NAVY   = '#0f2756';
+    const ORANGE = '#eb5b30';
+
+    function openTab(evt, tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('.tab-link').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabName).style.display = 'block';
+      evt.currentTarget.classList.add('active');
+    }
+
+    function openSubTab(evt, subTabName) {
+      document.querySelectorAll('.sub-tab-content').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('.sub-tab-link').forEach(el => el.classList.remove('active'));
+      document.getElementById(subTabName).style.display = 'block';
+      evt.currentTarget.classList.add('active');
+    }
+
+    Chart.register(ChartDataLabels);
+
+    let currentChart, previousChart, analyticsChart, trendsChart;
+
+    async function updateDashboard() {
+      try {
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+        let allData;
+        if (isLocal) {
+          try {
+            const response = await fetch('https://tracker.whatifweb.co.nz/api/data');
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            allData = await response.json();
+          } catch {
+            allData = [
+              { event: 'formView',       sessionId: 'test-1', timestamp: new Date(Date.now() - 60000).toISOString() },
+              { event: 'stepChange',     step: '1', sessionId: 'test-1', timestamp: new Date(Date.now() - 50000).toISOString() },
+              { event: 'stepChange',     step: '2', sessionId: 'test-1', timestamp: new Date(Date.now() - 40000).toISOString() },
+              { event: 'formSubmission', sessionId: 'test-1', timestamp: new Date(Date.now() - 30000).toISOString() },
+            ];
+          }
+        } else {
+          const response = await fetch('/api/data');
+          allData = await response.json();
+        }
+
+        window.currentData = allData;
+        populateMonthPicker(allData);
+
+        let filteredData = applyDateFilters(allData);
+
+        const sessions = {};
+        filteredData.forEach(event => {
+          const { sessionId, step, event: eventType } = event;
+          if (!sessionId) return;
+          if (!sessions[sessionId]) sessions[sessionId] = { maxStep: 0, submitted: false };
+          if (eventType === 'stepChange' && step) {
+            const n = parseInt(step, 10);
+            if (n > sessions[sessionId].maxStep) sessions[sessionId].maxStep = n;
+          } else if (eventType === 'formSubmission') {
+            sessions[sessionId].submitted = true;
+          }
+        });
+
+        updateFunnels();
+        updateAnalyticsChart(filteredData);
+        updateTrendsChart(allData);
+
+        const sessionIds = Object.keys(sessions);
+        const totalViews = sessionIds.length;
+        const totalSubmissions = Object.values(sessions).filter(s => s.submitted).length;
+        const conversionRate = totalViews > 0 ? (totalSubmissions / totalViews) * 100 : 0;
+
+        document.getElementById('totalViews').textContent = totalViews;
+        document.getElementById('totalSubmissions').textContent = totalSubmissions;
+        document.getElementById('completionRate').textContent = `${conversionRate.toFixed(1)}%`;
+
+        const tableBody = document.querySelector('#submissionsTable tbody');
+        tableBody.innerHTML = '';
+        filteredData
+          .filter(e => e.event === 'formSubmission')
+          .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+          .forEach(event => {
+            const row = tableBody.insertRow();
+            row.insertCell(0).textContent = new Date(event.timestamp).toLocaleString();
+            row.insertCell(1).textContent = event.sessionId;
+          });
+      } catch {}
+    }
+
+    function initializeFunnelCharts() {
+      if (currentChart)  currentChart.destroy();
+      if (previousChart) previousChart.destroy();
+
+      const datalabels = {
+        color: 'white',
+        anchor: 'center',
+        align: 'center',
+        font: { size: 16, weight: 'bold' },
+        formatter: (value, context) => {
+          const data = context.chart.data.datasets[0].data;
+          if (context.dataIndex === 0) return null;
+          const prev = data[context.dataIndex - 1];
+          if (prev === 0) return null;
+          const drop = ((prev - value) / prev) * 100;
+          return drop > 0 ? `${drop.toFixed(0)}%` : null;
+        }
+      };
+
+      const baseConfig = {
+        type: 'bar',
+        data: {
+          labels: [],
+          datasets: [
+            { label: 'Users Reached Step', data: [], order: 2, datalabels },
+            { type: 'line', label: 'Funnel Flow', data: [], borderColor: GREY, backgroundColor: GREY, tension: 0, order: 1, datalabels: { display: false } }
+          ]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, title: { display: true, text: 'Number of Users' }, ticks: { precision: 0 } },
+            x: { title: { display: true, text: 'Form Step' } }
+          }
+        }
+      };
+
+      currentChart = new Chart(document.getElementById('currentChart').getContext('2d'), {
+        ...baseConfig,
+        data: { ...baseConfig.data, datasets: baseConfig.data.datasets.map((ds, i) => i === 0 ? { ...ds, backgroundColor: GREEN } : { ...ds }) }
+      });
+
+      previousChart = new Chart(document.getElementById('previousChart').getContext('2d'), {
+        ...baseConfig,
+        data: { ...baseConfig.data, datasets: baseConfig.data.datasets.map((ds, i) => i === 0 ? { ...ds, backgroundColor: RED } : { ...ds }) }
+      });
+    }
+
+    function updateFunnels() {
+      if (!window.currentData) return;
+
+      const changeDateInput = document.getElementById('changeDate');
+      if (!changeDateInput.value) return;
+
+      const changeDate = new Date(changeDateInput.value);
+      const allData = window.currentData;
+
+      const currentData  = allData.filter(e => new Date(e.timestamp) >= changeDate);
+      const previousData = allData.filter(e => new Date(e.timestamp) <  changeDate);
+
+      function processSessions(data) {
+        const sessions = {};
+        data.forEach(({ sessionId, step, event: eventType }) => {
+          if (!sessionId) return;
+          if (!sessions[sessionId]) sessions[sessionId] = { maxStep: 0, submitted: false };
+          if (eventType === 'stepChange' && step) {
+            const n = parseInt(step, 10);
+            if (n > sessions[sessionId].maxStep) sessions[sessionId].maxStep = n;
+          } else if (eventType === 'formSubmission') {
+            sessions[sessionId].submitted = true;
+          }
+        });
+        return sessions;
+      }
+
+      const cSessions = processSessions(currentData);
+      const pSessions = processSessions(previousData);
+
+      const cViews = Object.keys(cSessions).length;
+      const cSubs  = Object.values(cSessions).filter(s => s.submitted).length;
+      document.getElementById('currentViews').textContent      = cViews;
+      document.getElementById('currentSubmissions').textContent = cSubs;
+      document.getElementById('currentConversion').textContent  = cViews > 0 ? `${((cSubs/cViews)*100).toFixed(1)}%` : '0%';
+
+      const pViews = Object.keys(pSessions).length;
+      const pSubs  = Object.values(pSessions).filter(s => s.submitted).length;
+      document.getElementById('previousViews').textContent      = pViews;
+      document.getElementById('previousSubmissions').textContent = pSubs;
+      document.getElementById('previousConversion').textContent  = pViews > 0 ? `${((pSubs/pViews)*100).toFixed(1)}%` : '0%';
+
+      function updateChart(chart, sessions, defaultMaxStep) {
+        if (!chart) return;
+        const maxStep   = Math.max(...Object.values(sessions).map(s => s.maxStep), defaultMaxStep);
+        const hasSubs   = Object.values(sessions).some(s => s.submitted);
+        const labels    = Array.from({ length: maxStep }, (_, i) => `Step ${i + 1}`);
+        if (hasSubs) labels.push('Submitted');
+        const counts    = Array(labels.length).fill(0);
+        Object.values(sessions).forEach(s => {
+          for (let i = 0; i < s.maxStep; i++) counts[i]++;
+          if (s.submitted && hasSubs) counts[maxStep]++;
+        });
+        chart.data.labels                 = labels;
+        chart.data.datasets[0].data       = counts;
+        chart.data.datasets[1].data       = counts;
+        chart.update();
+      }
+
+      updateChart(currentChart,  cSessions, 3);
+      updateChart(previousChart, pSessions, 4);
+    }
+
+    const implementationDate = new Date('2025-08-22');
+    document.getElementById('changeDate').value = implementationDate.toISOString().split('T')[0];
+
+    function initializeAnalyticsChart() {
+      if (analyticsChart) analyticsChart.destroy();
+      analyticsChart = new Chart(document.getElementById('analyticsChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: 'Users Reached Step',
+              data: [],
+              backgroundColor: BLUE,
+              order: 2,
+              datalabels: {
+                color: 'white',
+                anchor: 'center',
+                align: 'center',
+                font: { size: 14, weight: 'bold' },
+                formatter: (value, context) => {
+                  const data = context.chart.data.datasets[0].data;
+                  if (context.dataIndex === 0) return null;
+                  const prev = data[context.dataIndex - 1];
+                  if (prev === 0) return null;
+                  const drop = ((prev - value) / prev) * 100;
+                  return drop > 0 ? `${drop.toFixed(0)}%` : null;
+                }
+              }
+            },
+            { type: 'line', label: 'Funnel Flow', data: [], borderColor: GREY, backgroundColor: GREY, tension: 0, order: 1, datalabels: { display: false } }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            title: { display: true, text: 'Form Funnel Analysis' }
+          },
+          scales: {
+            y: { beginAtZero: true, title: { display: true, text: 'Number of Users' }, ticks: { precision: 0 } },
+            x: { title: { display: true, text: 'Form Step' } }
+          }
+        }
+      });
+    }
+
+    function updateAnalyticsChart(filteredData) {
+      if (!analyticsChart || !filteredData) return;
+      const sessions = {};
+      filteredData.forEach(({ sessionId, step, event: eventType }) => {
+        if (!sessionId) return;
+        if (!sessions[sessionId]) sessions[sessionId] = { maxStep: 0, submitted: false };
+        if (eventType === 'stepChange' && step) {
+          const n = parseInt(step, 10);
+          if (n > sessions[sessionId].maxStep) sessions[sessionId].maxStep = n;
+        } else if (eventType === 'formSubmission') {
+          sessions[sessionId].submitted = true;
+        }
+      });
+      const maxStep = Math.max(...Object.values(sessions).map(s => s.maxStep), 3);
+      const hasSubs = Object.values(sessions).some(s => s.submitted);
+      const labels  = Array.from({ length: maxStep }, (_, i) => `Step ${i + 1}`);
+      if (hasSubs) labels.push('Submitted');
+      const counts  = Array(labels.length).fill(0);
+      Object.values(sessions).forEach(s => {
+        for (let i = 0; i < s.maxStep; i++) counts[i]++;
+        if (s.submitted && hasSubs) counts[maxStep]++;
+      });
+      analyticsChart.data.labels             = labels;
+      analyticsChart.data.datasets[0].data   = counts;
+      analyticsChart.data.datasets[1].data   = counts;
+      analyticsChart.update();
+    }
+
+    function initializeTrendsChart() {
+      if (trendsChart) trendsChart.destroy();
+      trendsChart = new Chart(document.getElementById('trendsChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: 'Form Views',
+              data: [],
+              backgroundColor: `${BLUE}cc`,
+              borderColor: BLUE,
+              borderWidth: 1,
+              order: 1,
+              datalabels: { color: NAVY, anchor: 'end', align: 'top', font: { size: 12, weight: 'bold' }, formatter: v => v > 0 ? v : '' }
+            },
+            {
+              label: 'Form Submissions',
+              data: [],
+              backgroundColor: `${GREEN}cc`,
+              borderColor: GREEN,
+              borderWidth: 1,
+              order: 2,
+              datalabels: { color: NAVY, anchor: 'end', align: 'top', font: { size: 12, weight: 'bold' }, formatter: v => v > 0 ? v : '' }
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: { display: true, text: 'Monthly Performance Trends', font: { size: 16, weight: 'bold' } },
+            legend: { display: true, position: 'top' },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+              callbacks: {
+                afterLabel(context) {
+                  if (context.datasetIndex === 0) {
+                    const views = context.parsed.y;
+                    const subs  = trendsChart.data.datasets[1].data[context.dataIndex];
+                    return `Conversion Rate: ${views > 0 ? ((subs/views)*100).toFixed(1) : 0}%`;
+                  }
+                  return '';
+                }
+              }
+            }
+          },
+          scales: {
+            y: { beginAtZero: true, title: { display: true, text: 'Number of Events' }, ticks: { precision: 0 } },
+            x: { title: { display: true, text: 'Month' } }
+          },
+          interaction: { mode: 'index', intersect: false }
+        }
+      });
+    }
+
+    function processMonthlyTrends(allData) {
+      const monthly = {};
+      allData.forEach(event => {
+        if (!event?.timestamp || !event?.sessionId) return;
+        const date     = new Date(event.timestamp);
+        const key      = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`;
+        const label    = date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+        if (!monthly[key]) monthly[key] = { label, sessions: new Set(), submissions: new Set() };
+        if (event.event === 'formView' || event.event === 'stepChange') monthly[key].sessions.add(event.sessionId);
+        if (event.event === 'formSubmission') monthly[key].submissions.add(event.sessionId);
+      });
+      return Object.keys(monthly).sort().map(k => ({ key: k, label: monthly[k].label, views: monthly[k].sessions.size, submissions: monthly[k].submissions.size }));
+    }
+
+    function updateTrendsChart(allData) {
+      if (!trendsChart || !allData) return;
+      const trends = processMonthlyTrends(allData);
+      trendsChart.data.labels             = trends.map(m => m.label);
+      trendsChart.data.datasets[0].data   = trends.map(m => m.views);
+      trendsChart.data.datasets[1].data   = trends.map(m => m.submissions);
+      trendsChart.update();
+
+      const best = trends.reduce((b, c) => c.views > b.views ? c : b, { views: 0, label: '-' });
+      let avgGrowth = 0;
+      if (trends.length > 1) {
+        const rates = [];
+        for (let i = 1; i < trends.length; i++) {
+          const prev = trends[i-1].views;
+          if (prev > 0) rates.push(((trends[i].views - prev) / prev) * 100);
+        }
+        if (rates.length) avgGrowth = rates.reduce((s, r) => s + r, 0) / rates.length;
+      }
+      document.getElementById('totalMonths').textContent = trends.length;
+      document.getElementById('bestMonth').textContent   = best.label;
+      document.getElementById('avgGrowth').textContent   = `${avgGrowth >= 0 ? '+' : ''}${avgGrowth.toFixed(1)}%`;
+    }
+
+    let monthPickerInitialized = false;
+
+    function populateMonthPicker(allData) {
+      const picker   = document.getElementById('monthPicker');
+      const current  = picker.value;
+      const months   = new Set();
+
+      allData.forEach(event => {
+        if (event?.timestamp) {
+          const d   = new Date(event.timestamp);
+          const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+          const lbl = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+          months.add(JSON.stringify({ key, label: lbl }));
+        }
+      });
+
+      picker.innerHTML = '<option value="">All Months</option>';
+      const sorted = Array.from(months).map(m => JSON.parse(m)).sort((a,b) => b.key.localeCompare(a.key));
+      sorted.forEach(({ key, label }) => {
+        const opt = document.createElement('option');
+        opt.value = key; opt.textContent = label;
+        picker.appendChild(opt);
+      });
+
+      if (current && sorted.some(m => m.key === current)) {
+        picker.value = current;
+      } else if (!monthPickerInitialized) {
+        const now     = new Date();
+        const nowKey  = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+        picker.value  = sorted.some(m => m.key === nowKey) ? nowKey : (sorted[0]?.key ?? '');
+        monthPickerInitialized = true;
+      }
+    }
+
+    function applyDateFilters(allData) {
+      const selected = document.getElementById('monthPicker').value;
+      if (!selected) return [...allData];
+      const [year, month] = selected.split('-');
+      return allData.filter(event => {
+        if (!event?.timestamp) return false;
+        const d = new Date(event.timestamp);
+        return d.getFullYear() == year && (d.getMonth() + 1) == month;
+      });
+    }
+
+    document.getElementById('monthPicker').addEventListener('change', () => updateDashboard());
+
+    updateDashboard();
+    setInterval(updateDashboard, 5000);
+    setTimeout(initializeFunnelCharts,   100);
+    setTimeout(initializeAnalyticsChart, 100);
+    setTimeout(initializeTrendsChart,    100);
+  </script>
+</body>
+</html>
