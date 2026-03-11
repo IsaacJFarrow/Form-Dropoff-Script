@@ -11,9 +11,9 @@ const CACHE_DURATION_MS = 30 * 1000;
 
 export async function GET({ locals }: { locals: App.Locals }) {
   try {
-    const d1 = locals.runtime.env.DB;
+    const d1 = locals.runtime.env.DATABASE;
     if (!d1) {
-      return new Response(JSON.stringify({ error: "D1 database 'DB' not configured." }), {
+      return new Response(JSON.stringify({ error: "D1 database 'DATABASE' not configured." }), {
         status: 500,
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
       });

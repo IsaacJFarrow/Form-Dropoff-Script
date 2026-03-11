@@ -33,9 +33,9 @@ export async function POST({ request, locals }: { request: Request; locals: App.
   }
 
   try {
-    const d1 = locals.runtime.env.DB;
+    const d1 = locals.runtime.env.DATABASE;
     if (!d1) {
-      return new Response(JSON.stringify({ error: "D1 database 'DB' not configured." }), {
+      return new Response(JSON.stringify({ error: "D1 database 'DATABASE' not configured." }), {
         status: 500,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
       });

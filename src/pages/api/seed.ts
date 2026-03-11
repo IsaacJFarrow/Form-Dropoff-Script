@@ -12,7 +12,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
 
-  const db = (locals.runtime.env as { DB: D1Database }).DB;
+  const db = (locals.runtime.env as { DATABASE: D1Database }).DATABASE;
 
   // Check if already seeded
   const existing = await db.prepare('SELECT COUNT(*) as count FROM events').first<{ count: number }>();
