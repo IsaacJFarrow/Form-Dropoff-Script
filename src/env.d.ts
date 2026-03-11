@@ -7,5 +7,5 @@ declare namespace App {
 }
 
 interface Env {
-  DATABASE: D1Database;
+  DB: D1Database;
 }
