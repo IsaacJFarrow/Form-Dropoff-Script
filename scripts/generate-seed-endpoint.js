@@ -1,45 +1,48 @@
 import { readFileSync, writeFileSync } from 'fs';
 
-const data = readFileSync('seed-data.json', 'utf8');
+const data = JSON.parse(readFileSync('seed-data.json', 'utf8'));
+
+// Transform field names from SQL format to KV format
+const transformed = data.map(row => ({
+  timestamp: row.timestamp,
+  sessionId: row.session_id,
+  event:     row.event_type,
+  step:      row.step,
+}));
 
 const content = `import type { APIRoute } from 'astro';
 
 export const prerender = false;
 
 // Historical data migrated from Cloudflare KV
-const SEED_DATA = ${data};
+const SEED_DATA = ${JSON.stringify(transformed)};
 
 export const POST: APIRoute = async ({ request, locals }) => {
-  // Simple auth check
   const auth = request.headers.get('x-seed-token');
   if (auth !== 'wiw-seed-2025') {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
 
-  const db = (locals.runtime.env as { DB: D1Database }).DB;
+  const kv = (locals.runtime.env as any).EVENTS_KV;
+  if (!kv) {
+    return new Response(JSON.stringify({ error: 'KV not configured.' }), { status: 500 });
+  }
 
   // Check if already seeded
-  const existing = await db.prepare('SELECT COUNT(*) as count FROM events').first<{ count: number }>();
-  if (existing && existing.count > 0) {
-    return new Response(JSON.stringify({ message: 'Already seeded', existing: existing.count }), {
+  const existing = await kv.list({ prefix: 'event:', limit: 1 });
+  if (existing.keys.length > 0) {
+    return new Response(JSON.stringify({ message: 'Already seeded' }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
   }
 
-  // Insert in batches of 100
-  const batchSize = 100;
+  // Insert all events
   let inserted = 0;
-
-  for (let i = 0; i < SEED_DATA.length; i += batchSize) {
-    const batch = SEED_DATA.slice(i, i + batchSize);
-    const stmts = batch.map((row: { timestamp: string; session_id: string; event_type: string; step: string | null }) =>
-      db.prepare(
-        'INSERT INTO events (timestamp, session_id, event_type, step) VALUES (?, ?, ?, ?)'
-      ).bind(row.timestamp, row.session_id, row.event_type, row.step)
-    );
-    await db.batch(stmts);
-    inserted += batch.length;
+  for (const row of SEED_DATA) {
+    const key = \`event:\${row.timestamp}:\${row.sessionId}\`;
+    await kv.put(key, '', { metadata: row });
+    inserted++;
   }
 
   return new Response(JSON.stringify({ message: 'Seed complete', inserted }), {
@@ -50,4 +53,4 @@ export const POST: APIRoute = async ({ request, locals }) => {
 `;
 
 writeFileSync('src/pages/api/seed.ts', content);
-console.log('Generated src/pages/api/seed.ts');
+console.log('Generated src/pages/api/seed.ts for KV');
