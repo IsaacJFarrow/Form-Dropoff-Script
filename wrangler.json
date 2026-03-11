@@ -3,9 +3,10 @@
   "compatibility_date": "2025-01-01",
   "d1_databases": [
     {
-      "binding": "DB",
-      "database_name": "form-db",
-      "migrations_dir": "./drizzle"
+      "binding": "DATABASE",
+      "database_name": "DATABASE_NAME",
+      "database_id": "123456789",
+      "migrations_dir": "./migrations"
     }
   ]
 }
