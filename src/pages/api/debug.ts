@@ -8,7 +8,6 @@ export async function GET({ locals }: { locals: App.Locals }) {
     hasRuntime: !!runtime,
     hasEnv: !!env,
     envKeys: env ? Object.keys(env) : [],
-    hasKV: !!env?.EVENTS_KV,
   }), {
     headers: { 'Content-Type': 'application/json' },
   });

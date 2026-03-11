@@ -1,14 +1,19 @@
 export const prerender = false;
 
+import { drizzle } from 'drizzle-orm/d1';
+import { asc }     from 'drizzle-orm';
+import { events }  from '../../db/schema';
+
+// In-memory cache — persists while the Worker isolate stays warm
 let cachedData: string | null = null;
 let cachedAt = 0;
 const CACHE_DURATION_MS = 30 * 1000;
 
 export async function GET({ locals }: { locals: App.Locals }) {
   try {
-    const kv = locals.runtime.env.EVENTS_KV;
-    if (!kv) {
-      return new Response(JSON.stringify({ error: 'KV not configured.' }), {
+    const d1 = locals.runtime.env.DB;
+    if (!d1) {
+      return new Response(JSON.stringify({ error: "D1 database 'DB' not configured." }), {
         status: 500,
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
       });
@@ -22,15 +27,19 @@ export async function GET({ locals }: { locals: App.Locals }) {
       });
     }
 
-    // Single list call returns all keys + metadata — no N+1 fetches needed
-    const listed = await kv.list({ prefix: 'event:' });
-    const events = listed.keys
-      .map((k: { name: string; metadata: unknown }) => k.metadata)
-      .sort((a: any, b: any) => (a.timestamp > b.timestamp ? 1 : -1));
+    const db   = drizzle(d1);
+    const rows = await db.select().from(events).orderBy(asc(events.timestamp));
 
-    const payload = JSON.stringify(events);
+    // Reshape to match what the dashboard JS expects
+    const payload = JSON.stringify(rows.map(r => ({
+      timestamp: r.timestamp,
+      sessionId: r.sessionId,
+      event:     r.eventType,
+      step:      r.step,
+    })));
+
     cachedData = payload;
-    cachedAt = now;
+    cachedAt   = now;
 
     return new Response(payload, {
       status: 200,

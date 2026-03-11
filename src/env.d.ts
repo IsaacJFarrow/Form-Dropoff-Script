@@ -7,5 +7,5 @@ declare namespace App {
 }
 
 interface Env {
-  EVENTS_KV: KVNamespace;
+  DB: D1Database;
 }
