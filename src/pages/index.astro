@@ -10,6 +10,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Onboarding Analysis | What IF Web</title>
   <meta name="app-base" content={base} />
+  <!-- What IF Web v2 global styles (fonts, CSS variables, typography) -->
+  <link rel="stylesheet" href={`${base}/../devlink/global.css`} />
   <!-- Chart.js — is:inline prevents Astro from deferring these as ES modules -->
   <script is:inline src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
   <script is:inline src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2/dist/chartjs-plugin-datalabels.min.js"></script>
@@ -53,14 +55,21 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
 
     /* ── Stat cards ───────────────────────────────── */
     .stats {
-      display: flex;
-      justify-content: space-around;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
       gap: 1rem;
       margin-bottom: 2rem;
     }
 
+    @media (max-width: 767px) {
+      .stats { grid-template-columns: 1fr; }
+    }
+
+    @media (min-width: 768px) and (max-width: 991px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+    }
+
     .stat-card {
-      flex: 1;
       padding: 1.5rem;
       border-radius: 1rem;
       background-color: var(--background-color--background-secondary);
@@ -68,13 +77,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
       text-align: center;
     }
 
-    .stat-card p {
-      margin: 0;
-      font-size: 2.25rem;
-      font-weight: 700;
-      color: var(--text-color--text-primary);
-      letter-spacing: -0.05rem;
-    }
 
     /* ── Tabs ─────────────────────────────────────── */
     .tabs {
@@ -82,6 +84,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
       gap: 0.25rem;
       border-bottom: 2px solid var(--border-color--border-tertiary);
       margin-bottom: 1.5rem;
+      margin-top: 1.5rem;
       padding-bottom: 0;
     }
 
@@ -244,7 +247,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
 </head>
 <body>
   <div class="container-medium">
-    <p class="dashboard-title">Onboarding Analysis</p>
+    <h1 class="heading-style-h2-small text-align-center">Onboarding Analysis</h1>
 
     <div class="tabs">
       <button class="tab-link active" onclick="openTab(event, 'Current')">Current Funnel (3 Steps)</button>
@@ -259,21 +262,21 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
         <label for="changeDate">Change Implementation Date:</label>
         <input type="date" id="changeDate">
         <button onclick="updateFunnels()">Update Date</button>
-        <span>Showing data from this date onwards</p>
+        <span>Showing data from this date onwards</span>
       </div>
 
       <div class="stats" style="margin-bottom: 2rem;">
         <div class="stat-card">
-          <p class="text-size-tiny text-weight-semibold text-color-secondary text-style-allcaps">Form Views</p>
-          <p id="currentViews">0</p>
+          <h2 class="heading-style-h3">Form Views</h2>
+          <p class="text-size-large" id="currentViews">0</p>
         </div>
         <div class="stat-card">
-          <p class="text-size-tiny text-weight-semibold text-color-secondary text-style-allcaps">Submissions</p>
-          <p id="currentSubmissions">0</p>
+          <h2 class="heading-style-h3">Submissions</h2>
+          <p class="text-size-large" id="currentSubmissions">0</p>
         </div>
         <div class="stat-card">
-          <p class="text-size-tiny text-weight-semibold text-color-secondary text-style-allcaps">Conversion Rate</p>
-          <p id="currentConversion">0%</p>
+          <h2 class="heading-style-h3">Conversion Rate</h2>
+          <p class="text-size-large" id="currentConversion">0%</p>
         </div>
       </div>
 
@@ -288,16 +291,16 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
 
       <div class="stats" style="margin-bottom: 2rem;">
         <div class="stat-card">
-          <p class="text-size-tiny text-weight-semibold text-color-secondary text-style-allcaps">Form Views</p>
-          <p id="previousViews">0</p>
+          <h2 class="heading-style-h3">Form Views</h2>
+          <p class="text-size-large" id="previousViews">0</p>
         </div>
         <div class="stat-card">
-          <p class="text-size-tiny text-weight-semibold text-color-secondary text-style-allcaps">Submissions</p>
-          <p id="previousSubmissions">0</p>
+          <h2 class="heading-style-h3">Submissions</h2>
+          <p class="text-size-large" id="previousSubmissions">0</p>
         </div>
         <div class="stat-card">
-          <p class="text-size-tiny text-weight-semibold text-color-secondary text-style-allcaps">Conversion Rate</p>
-          <p id="previousConversion">0%</p>
+          <h2 class="heading-style-h3">Conversion Rate</h2>
+          <p class="text-size-large" id="previousConversion">0%</p>
         </div>
       </div>
 
@@ -321,16 +324,16 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
 
         <div class="stats" style="margin-bottom: 2rem;">
           <div class="stat-card">
-            <p class="text-size-tiny text-weight-semibold text-color-secondary text-style-allcaps">Form Views</p>
-            <p id="totalViews">0</p>
+            <h2 class="heading-style-h3">Form Views</h2>
+            <p class="text-size-large" id="totalViews">0</p>
           </div>
           <div class="stat-card">
-            <p class="text-size-tiny text-weight-semibold text-color-secondary text-style-allcaps">Submissions</p>
-            <p id="totalSubmissions">0</p>
+            <h2 class="heading-style-h3">Submissions</h2>
+            <p class="text-size-large" id="totalSubmissions">0</p>
           </div>
           <div class="stat-card">
-            <p class="text-size-tiny text-weight-semibold text-color-secondary text-style-allcaps">Conversion Rate</p>
-            <p id="completionRate">0%</p>
+            <h2 class="heading-style-h3">Conversion Rate</h2>
+            <p class="text-size-large" id="completionRate">0%</p>
           </div>
         </div>
 
@@ -345,16 +348,16 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
 
         <div class="stats" style="margin-bottom: 2rem;">
           <div class="stat-card">
-            <p class="text-size-tiny text-weight-semibold text-color-secondary text-style-allcaps">Total Months</p>
-            <p id="totalMonths">0</p>
+            <h2 class="heading-style-h3">Total Months</h2>
+            <p class="text-size-large" id="totalMonths">0</p>
           </div>
           <div class="stat-card">
-            <p class="text-size-tiny text-weight-semibold text-color-secondary text-style-allcaps">Best Month (Views)</p>
-            <p id="bestMonth">-</p>
+            <h2 class="heading-style-h3">Best Month (Views)</h2>
+            <p class="text-size-large" id="bestMonth">-</p>
           </div>
           <div class="stat-card">
-            <p class="text-size-tiny text-weight-semibold text-color-secondary text-style-allcaps">Avg Monthly Growth</p>
-            <p id="avgGrowth">0%</p>
+            <h2 class="heading-style-h3">Avg Monthly Growth</h2>
+            <p class="text-size-large" id="avgGrowth">0%</p>
           </div>
         </div>
 
@@ -474,6 +477,12 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
       } catch {}
     }
 
+    const ANIMATION = {
+      duration: 700,
+      easing: 'easeOutQuart',
+      delay: (ctx) => ctx.type === 'data' && ctx.mode === 'default' ? ctx.dataIndex * 80 : 0,
+    };
+
     function initializeFunnelCharts() {
       if (currentChart)  currentChart.destroy();
       if (previousChart) previousChart.destroy();
@@ -503,6 +512,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
           ]
         },
         options: {
+          animation: ANIMATION,
           plugins: { legend: { display: false } },
           scales: {
             y: { beginAtZero: true, title: { display: true, text: 'Number of Users' }, ticks: { precision: 0 } },
@@ -619,6 +629,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
           ]
         },
         options: {
+          animation: ANIMATION,
           responsive: true,
           plugins: {
             legend: { display: false },
@@ -707,6 +718,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
               }
             }
           },
+          animation: ANIMATION,
           scales: {
             y: { beginAtZero: true, title: { display: true, text: 'Number of Events' }, ticks: { precision: 0 } },
             x: { title: { display: true, text: 'Month' } }

@@ -5,7 +5,7 @@ export default defineConfig({
   output: 'server',
   base: '/tracker',
   adapter: cloudflare({
-    // Enables local D1/KV/R2 access during `astro dev`
     platformProxy: { enabled: true },
+    imageService: 'passthrough',
   }),
 });

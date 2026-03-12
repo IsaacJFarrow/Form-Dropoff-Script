@@ -8,9 +8,7 @@ node_modules/
 !package-lock.json
 !tsconfig.json
 !wrangler.json
-
-# Migration data (contains real user data — do not commit)
-import.sql
+!webflow.json
 
 # Environment
 .env*
