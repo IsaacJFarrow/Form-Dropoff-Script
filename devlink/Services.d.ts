@@ -1,0 +1,32 @@
+import * as React from "react";
+import * as Types from "./types";
+
+declare function Services(props: {
+  as?: React.ElementType;
+  heading?: React.ReactNode;
+  subheading?: React.ReactNode;
+  servicesCard1Heading?: React.ReactNode;
+  servicesCard1Subheading?: React.ReactNode;
+  servicesCard1Image?: Types.Asset.Image;
+  servicesCard2Heading?: React.ReactNode;
+  servicesCard2Subheading?: React.ReactNode;
+  servicesCard2Image?: Types.Asset.Image;
+  servicesCard3Heading?: React.ReactNode;
+  servicesCard3Subheading?: React.ReactNode;
+  servicesCard3Image?: Types.Asset.Image;
+  servicesCard4Heading?: React.ReactNode;
+  servicesCard4Subheading?: React.ReactNode;
+  servicesCard4Image?: Types.Asset.Image;
+  servicesCard5Heading?: React.ReactNode;
+  servicesCard5Subheading?: React.ReactNode;
+  servicesCard5Image?: Types.Asset.Image;
+  servicesCard1Link?: Types.Basic.Link;
+  servicesCard2Link?: Types.Basic.Link;
+  servicesCard3Link?: Types.Basic.Link;
+  servicesCard4Link?: Types.Basic.Link;
+  servicesCard5Link?: Types.Basic.Link;
+  servicesCard6Heading?: React.ReactNode;
+  servicesCard6Subheading?: React.ReactNode;
+  servicesCard6Image?: Types.Asset.Image;
+  servicesCard6Link?: Types.Basic.Link;
+}): React.JSX.Element;

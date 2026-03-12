@@ -1,5 +1,6 @@
 ---
 // Form Dropoff Tracker Dashboard
+import '../../devlink/global.css';
 const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
 ---
 <!DOCTYPE html>
@@ -7,45 +8,24 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>What IF Web — Onboarding Analysis</title>
+  <title>Onboarding Analysis | What IF Web</title>
   <meta name="app-base" content={base} />
-  <!-- Generalsans — What IF Web v2 typeface -->
-  <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap">
   <!-- Chart.js — is:inline prevents Astro from deferring these as ES modules -->
   <script is:inline src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
   <script is:inline src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2/dist/chartjs-plugin-datalabels.min.js"></script>
   <style>
-    /* ── Brand tokens ─────────────────────────────── */
+    /* ── Local aliases for convenience ───────────────── */
     :root {
-      --color-black:       #0f2756;
-      --color-dark-grey:   #2d3f61;
-      --color-light-grey:  #f8f1eb;
-      --color-white:       #fff9f3;
-      --color-blue:        #0053ff;
-      --color-light-blue:  #bac9e6;
-      --color-green:       #95f99f;
-      --color-red:         #ff6c80;
-      --color-orange:      #eb5b30;
-
-      --bg-primary:        var(--color-white);
-      --bg-secondary:      var(--color-light-grey);
-      --text-primary:      var(--color-black);
-      --text-secondary:    var(--color-dark-grey);
-      --border-primary:    var(--color-black);
-      --accent:            var(--color-blue);
+      --accent: var(--base-color-brand--blue);
     }
 
     /* ── Reset / base ─────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; }
 
     body {
-      font-family: 'General Sans', system-ui, sans-serif;
-      font-size: 1rem;
-      line-height: 1.5;
-      background-color: var(--bg-secondary);
-      color: var(--text-primary);
-      margin: 0;
+      background-color: var(--background-color--background-secondary);
       padding: 2rem 1rem;
+      margin: 0;
     }
 
     /* ── Container ────────────────────────────────── */
@@ -54,29 +34,21 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
       max-width: 80rem;
       margin-right: auto;
       margin-left: auto;
-      background: var(--bg-primary);
+      background: var(--background-color--background-primary);
       padding: 2.5rem 3rem;
       border-radius: 1.5rem;
-      border: 2px solid var(--border-primary);
+      border: 2px solid var(--border-color--border-primary);
     }
 
-    /* ── Headings ─────────────────────────────────── */
-    h1 {
+    /* ── Page title ───────────────────────────────── */
+    .dashboard-title {
+      font-family: Calimate;
       font-size: 2rem;
-      font-weight: 600;
+      font-weight: 700;
       letter-spacing: -0.04rem;
-      color: var(--text-primary);
+      color: var(--text-color--text-primary);
       text-align: center;
       margin: 0 0 3rem 0;
-    }
-
-    h3 {
-      margin: 0 0 0.5rem 0;
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--text-secondary);
     }
 
     /* ── Stat cards ───────────────────────────────── */
@@ -91,8 +63,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
       flex: 1;
       padding: 1.5rem;
       border-radius: 1rem;
-      background-color: var(--bg-secondary);
-      border: 1.5px solid var(--color-light-blue);
+      background-color: var(--background-color--background-secondary);
+      border: 1.5px solid var(--border-color--border-tertiary);
       text-align: center;
     }
 
@@ -100,7 +72,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
       margin: 0;
       font-size: 2.25rem;
       font-weight: 700;
-      color: var(--text-primary);
+      color: var(--text-color--text-primary);
       letter-spacing: -0.05rem;
     }
 
@@ -108,7 +80,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
     .tabs {
       display: flex;
       gap: 0.25rem;
-      border-bottom: 2px solid var(--color-light-blue);
+      border-bottom: 2px solid var(--border-color--border-tertiary);
       margin-bottom: 1.5rem;
       padding-bottom: 0;
     }
@@ -119,10 +91,10 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
       outline: none;
       cursor: pointer;
       padding: 0.75rem 1.25rem;
-      font-family: inherit;
+      font-family: Generalsans;
       font-size: 0.95rem;
       font-weight: 500;
-      color: var(--text-secondary);
+      color: var(--text-color--text-secondary);
       border-bottom: 2px solid transparent;
       margin-bottom: -2px;
       border-radius: 0.5rem 0.5rem 0 0;
@@ -130,8 +102,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
     }
 
     .tab-link:hover {
-      color: var(--text-primary);
-      border-bottom-color: var(--color-light-blue);
+      color: var(--text-color--text-primary);
+      border-bottom-color: var(--border-color--border-tertiary);
     }
 
     .tab-link.active {
@@ -151,15 +123,15 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
 
     .sub-tab-link {
       background: transparent;
-      border: 1.5px solid var(--color-light-blue);
+      border: 1.5px solid var(--border-color--border-tertiary);
       border-radius: 20rem;
       outline: none;
       cursor: pointer;
       padding: 0.5rem 1.25rem;
-      font-family: inherit;
+      font-family: Generalsans;
       font-size: 0.875rem;
       font-weight: 500;
-      color: var(--text-secondary);
+      color: var(--text-color--text-secondary);
       transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
     }
 
@@ -189,17 +161,17 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
     .controls label {
       font-size: 0.875rem;
       font-weight: 500;
-      color: var(--text-secondary);
+      color: var(--text-color--text-secondary);
     }
 
     .controls select {
       padding: 0.4rem 0.75rem;
-      border: 1.5px solid var(--color-light-blue);
+      border: 1.5px solid var(--border-color--border-tertiary);
       border-radius: 20rem;
-      font-family: inherit;
+      font-family: Generalsans;
       font-size: 0.875rem;
-      color: var(--text-primary);
-      background: var(--bg-primary);
+      color: var(--text-color--text-primary);
+      background: var(--background-color--background-primary);
       cursor: pointer;
     }
 
@@ -208,27 +180,18 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
       border-color: var(--accent);
     }
 
-    /* ── Data info ────────────────────────────────── */
-    .data-info {
-      text-align: right;
-      color: var(--text-secondary);
-      font-size: 0.8rem;
-      margin-top: -0.5rem;
-      margin-bottom: 1rem;
-    }
-
     /* ── Notice banner ────────────────────────────── */
     .notice {
       margin-bottom: 1.5rem;
       padding: 1rem 1.25rem;
-      background-color: var(--bg-secondary);
-      border: 1.5px solid var(--color-light-blue);
+      background-color: var(--background-color--background-secondary);
+      border: 1.5px solid var(--border-color--border-tertiary);
       border-radius: 0.75rem;
       font-size: 0.9rem;
-      color: var(--text-secondary);
+      color: var(--text-color--text-secondary);
     }
 
-    .notice strong { color: var(--text-primary); }
+    .notice strong { color: var(--text-color--text-primary); }
 
     /* ── Monthly trends heading ───────────────────── */
     .trends-intro {
@@ -236,15 +199,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
       margin-bottom: 2rem;
     }
 
-    .trends-intro h2 {
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: var(--text-primary);
-      margin: 0 0 0.5rem 0;
-    }
-
     .trends-intro p {
-      color: var(--text-secondary);
+      color: var(--text-color--text-secondary);
       margin: 0;
     }
 
@@ -257,22 +213,22 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
     }
 
     th, td {
-      border: 1px solid var(--color-light-blue);
+      border: 1px solid var(--border-color--border-tertiary);
       padding: 0.75rem 1rem;
       text-align: left;
     }
 
     th {
-      background-color: var(--bg-secondary);
+      background-color: var(--background-color--background-secondary);
       font-weight: 600;
       font-size: 0.8rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: var(--text-secondary);
+      color: var(--text-color--text-secondary);
     }
 
-    tbody tr:nth-child(odd) { background-color: var(--bg-secondary); }
-    tbody tr:hover { background-color: var(--color-light-blue); }
+    tbody tr:nth-child(odd) { background-color: var(--background-color--background-secondary); }
+    tbody tr:hover { background-color: var(--base-color-brand--light-blue); }
 
     /* ── Canvas ───────────────────────────────────── */
     canvas { margin-bottom: 2rem; }
@@ -280,7 +236,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
     /* ── Trends footer note ───────────────────────── */
     .trends-note {
       text-align: center;
-      color: var(--text-secondary);
+      color: var(--text-color--text-secondary);
       font-size: 0.85rem;
       margin-top: -1rem;
     }
@@ -288,7 +244,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
 </head>
 <body>
   <div class="container-medium">
-    <h1>Onboarding Analysis</h1>
+    <p class="dashboard-title">Onboarding Analysis</p>
 
     <div class="tabs">
       <button class="tab-link active" onclick="openTab(event, 'Current')">Current Funnel (3 Steps)</button>
@@ -303,20 +259,20 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
         <label for="changeDate">Change Implementation Date:</label>
         <input type="date" id="changeDate">
         <button onclick="updateFunnels()">Update Date</button>
-        <span>Showing data from this date onwards</span>
+        <span>Showing data from this date onwards</p>
       </div>
 
       <div class="stats" style="margin-bottom: 2rem;">
         <div class="stat-card">
-          <h3>Form Views</h3>
+          <p class="text-size-tiny text-weight-semibold text-color-secondary text-style-allcaps">Form Views</p>
           <p id="currentViews">0</p>
         </div>
         <div class="stat-card">
-          <h3>Submissions</h3>
+          <p class="text-size-tiny text-weight-semibold text-color-secondary text-style-allcaps">Submissions</p>
           <p id="currentSubmissions">0</p>
         </div>
         <div class="stat-card">
-          <h3>Conversion Rate</h3>
+          <p class="text-size-tiny text-weight-semibold text-color-secondary text-style-allcaps">Conversion Rate</p>
           <p id="currentConversion">0%</p>
         </div>
       </div>
@@ -332,15 +288,15 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
 
       <div class="stats" style="margin-bottom: 2rem;">
         <div class="stat-card">
-          <h3>Form Views</h3>
+          <p class="text-size-tiny text-weight-semibold text-color-secondary text-style-allcaps">Form Views</p>
           <p id="previousViews">0</p>
         </div>
         <div class="stat-card">
-          <h3>Submissions</h3>
+          <p class="text-size-tiny text-weight-semibold text-color-secondary text-style-allcaps">Submissions</p>
           <p id="previousSubmissions">0</p>
         </div>
         <div class="stat-card">
-          <h3>Conversion Rate</h3>
+          <p class="text-size-tiny text-weight-semibold text-color-secondary text-style-allcaps">Conversion Rate</p>
           <p id="previousConversion">0%</p>
         </div>
       </div>
@@ -365,15 +321,15 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
 
         <div class="stats" style="margin-bottom: 2rem;">
           <div class="stat-card">
-            <h3>Form Views</h3>
+            <p class="text-size-tiny text-weight-semibold text-color-secondary text-style-allcaps">Form Views</p>
             <p id="totalViews">0</p>
           </div>
           <div class="stat-card">
-            <h3>Submissions</h3>
+            <p class="text-size-tiny text-weight-semibold text-color-secondary text-style-allcaps">Submissions</p>
             <p id="totalSubmissions">0</p>
           </div>
           <div class="stat-card">
-            <h3>Conversion Rate</h3>
+            <p class="text-size-tiny text-weight-semibold text-color-secondary text-style-allcaps">Conversion Rate</p>
             <p id="completionRate">0%</p>
           </div>
         </div>
@@ -383,21 +339,21 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
 
       <div id="MonthlyTrends" class="sub-tab-content" style="display: none;">
         <div class="trends-intro">
-          <h2>Monthly Performance Trends</h2>
+          <h4>Monthly Performance Trends</h4>
           <p>Track form views and submissions over time to identify growth patterns and seasonal trends</p>
         </div>
 
         <div class="stats" style="margin-bottom: 2rem;">
           <div class="stat-card">
-            <h3>Total Months</h3>
+            <p class="text-size-tiny text-weight-semibold text-color-secondary text-style-allcaps">Total Months</p>
             <p id="totalMonths">0</p>
           </div>
           <div class="stat-card">
-            <h3>Best Month (Views)</h3>
+            <p class="text-size-tiny text-weight-semibold text-color-secondary text-style-allcaps">Best Month (Views)</p>
             <p id="bestMonth">-</p>
           </div>
           <div class="stat-card">
-            <h3>Avg Monthly Growth</h3>
+            <p class="text-size-tiny text-weight-semibold text-color-secondary text-style-allcaps">Avg Monthly Growth</p>
             <p id="avgGrowth">0%</p>
           </div>
         </div>
@@ -425,13 +381,13 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
   <script is:inline>
     const API_BASE = document.querySelector('meta[name="app-base"]')?.content || '';
 
-    // Brand colours for charts
-    const BLUE   = '#0053ff';
-    const GREEN  = '#95f99f';
-    const RED    = '#ff6c80';
-    const GREY   = '#bac9e6';
-    const NAVY   = '#0f2756';
-    const ORANGE = '#eb5b30';
+    // Brand colours — match What IF Web v2 CSS variables
+    const BLUE   = '#0053ff'; // --base-color-brand--blue
+    const GREEN  = '#95f99f'; // --base-color-brand--green
+    const RED    = '#ff6c80'; // --base-color-brand--red
+    const GREY   = '#bac9e6'; // --base-color-brand--light-blue
+    const NAVY   = '#0f2756'; // --base-color-brand--black
+    const ORANGE = '#eb5b30'; // --base-color-brand--crab-orange
 
     function openTab(evt, tabName) {
       document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');

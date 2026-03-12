@@ -1,0 +1,36 @@
+import * as React from "react";
+import * as Types from "./types";
+
+declare function Process(props: {
+  as?: React.ElementType;
+  heading?: React.ReactNode;
+  eyebrowText?: React.ReactNode;
+  eyebrowVisibility?: Types.Visibility.VisibilityConditions;
+  item1Heading?: React.ReactNode;
+  item1Subheading?: React.ReactNode;
+  item1Link?: React.ReactNode;
+  item1LinkText?: React.ReactNode;
+  item1LinkVisibility?: Types.Visibility.VisibilityConditions;
+  item2Heading?: React.ReactNode;
+  item2Subheading?: React.ReactNode;
+  item2Link?: React.ReactNode;
+  item2LinkText?: React.ReactNode;
+  item2LinkVisibility?: Types.Visibility.VisibilityConditions;
+  item3Heading?: React.ReactNode;
+  item3Subheading?: React.ReactNode;
+  item3Link?: React.ReactNode;
+  item3LinkText?: React.ReactNode;
+  item3LinkVisibility?: Types.Visibility.VisibilityConditions;
+  item4Heading?: React.ReactNode;
+  item4Subheading?: React.ReactNode;
+  item4Link?: React.ReactNode;
+  item4LinkText?: React.ReactNode;
+  item4LinkVisibility?: Types.Visibility.VisibilityConditions;
+  item5Heading?: React.ReactNode;
+  item5Subheading?: React.ReactNode;
+  item5Link?: React.ReactNode;
+  item5LinkText?: React.ReactNode;
+  item5LinkVisibility?: Types.Visibility.VisibilityConditions;
+  finalItemText?: React.ReactNode;
+  finalItemVisibility?: Types.Visibility.VisibilityConditions;
+}): React.JSX.Element;
