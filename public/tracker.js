@@ -74,17 +74,21 @@
     }
 
     function sendTrackRequest(data) {
-        fetch(`${SERVER_URL}/api/track`, {
+        const payload = JSON.stringify({ ...data, sessionId });
+        const url = `${SERVER_URL}/api/track`;
+
+        // text/plain is a CORS "simple" content-type — no preflight OPTIONS needed.
+        // sendBeacon also survives page unload (useful for tracking navigations away).
+        if (navigator.sendBeacon) {
+            navigator.sendBeacon(url, new Blob([payload], { type: 'text/plain' }));
+            return;
+        }
+
+        fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ ...data, sessionId }),
-        })
-        .then(response => {
-            // Request completed
-        })
-        .catch(error => {});
+            headers: { 'Content-Type': 'text/plain' },
+            body: payload,
+        }).catch(() => {});
     }
 
     function debounce(func, wait) {

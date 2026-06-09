@@ -255,8 +255,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
     <h1 class="heading-style-h2-small text-align-center">Onboarding Analysis</h1>
 
     <div class="tabs">
-      <button class="tab-link active" onclick="openTab(event, 'Current')">Current Funnel (3 Steps)</button>
-      <button class="tab-link" onclick="openTab(event, 'Previous')">Previous Funnel (4 Steps)</button>
+      <button class="tab-link active" onclick="openTab(event, 'Current')">Current Funnel (2 Steps)</button>
+      <button class="tab-link" onclick="openTab(event, 'Previous')">Previous Funnel (3 Steps)</button>
       <button class="tab-link" onclick="openTab(event, 'Analytics')">Analytics</button>
       <button class="tab-link" onclick="openTab(event, 'Submissions')">Submissions Log</button>
     </div>
@@ -291,7 +291,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
     <!-- Previous Funnel -->
     <div id="Previous" class="tab-content">
       <div class="notice">
-        <strong>Historical Data:</strong> Performance data from before the 3-step optimisation was implemented (22/08/2025).
+        <strong>Historical Data:</strong> Performance data from the 3-step funnel, before the 2-step form was implemented (09/06/2026).
       </div>
 
       <div class="stats" style="margin-bottom: 2rem;">
@@ -609,11 +609,11 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
         chart.update(chartsAnimated ? 'none' : undefined);
       }
 
-      updateChart(currentChart,  cSessions, 3);
-      updateChart(previousChart, pSessions, 4);
+      updateChart(currentChart,  cSessions, 2);
+      updateChart(previousChart, pSessions, 3);
     }
 
-    const implementationDate = new Date('2025-08-22');
+    const implementationDate = new Date('2026-06-09');
     document.getElementById('changeDate').value = implementationDate.toISOString().split('T')[0];
 
     function initializeAnalyticsChart() {
@@ -674,7 +674,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
           sessions[sessionId].submitted = true;
         }
       });
-      const maxStep = Math.max(...Object.values(sessions).map(s => s.maxStep), 3);
+      const maxStep = Math.max(...Object.values(sessions).map(s => s.maxStep), 2);
       const hasSubs = Object.values(sessions).some(s => s.submitted);
       const labels  = Array.from({ length: maxStep }, (_, i) => `Step ${i + 1}`);
       if (hasSubs) labels.push('Submitted');
