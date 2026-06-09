@@ -257,6 +257,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
     <div class="tabs">
       <button class="tab-link active" onclick="openTab(event, 'Current')">Current Funnel (2 Steps)</button>
       <button class="tab-link" onclick="openTab(event, 'Previous')">Previous Funnel (3 Steps)</button>
+      <button class="tab-link" onclick="openTab(event, 'FourStep')">Previous Funnel (4 Steps)</button>
       <button class="tab-link" onclick="openTab(event, 'Analytics')">Analytics</button>
       <button class="tab-link" onclick="openTab(event, 'Submissions')">Submissions Log</button>
     </div>
@@ -310,6 +311,30 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
       </div>
 
       <canvas id="previousChart"></canvas>
+    </div>
+
+    <!-- 4-Step Funnel -->
+    <div id="FourStep" class="tab-content">
+      <div class="notice">
+        <strong>Historical Data:</strong> Performance data from the original 4-step funnel, before the 3-step form was implemented (22/08/2025).
+      </div>
+
+      <div class="stats" style="margin-bottom: 2rem;">
+        <div class="stat-card">
+          <h2 class="heading-style-h3">Form Views</h2>
+          <p class="text-size-large" id="fourStepViews">0</p>
+        </div>
+        <div class="stat-card">
+          <h2 class="heading-style-h3">Submissions</h2>
+          <p class="text-size-large" id="fourStepSubmissions">0</p>
+        </div>
+        <div class="stat-card">
+          <h2 class="heading-style-h3">Conversion Rate</h2>
+          <p class="text-size-large" id="fourStepConversion">0%</p>
+        </div>
+      </div>
+
+      <canvas id="fourStepChart"></canvas>
     </div>
 
     <!-- Analytics -->
@@ -405,7 +430,8 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
       evt.currentTarget.classList.add('active');
       if (!tabAnimated[tabName] && window.currentData) {
         tabAnimated[tabName] = true;
-        if (tabName === 'Previous' && previousChart) { previousChart.reset(); previousChart.update(); }
+        if (tabName === 'Previous'  && previousChart)  { previousChart.reset();  previousChart.update(); }
+        if (tabName === 'FourStep'  && fourStepChart)  { fourStepChart.reset();  fourStepChart.update(); }
         if (tabName === 'Analytics' && analyticsChart) { analyticsChart.reset(); analyticsChart.update(); }
         if (tabName === 'MonthlyTrends' && trendsChart) { trendsChart.reset(); trendsChart.update(); }
       }
@@ -424,7 +450,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
 
     Chart.register(ChartDataLabels);
 
-    let currentChart, previousChart, analyticsChart, trendsChart;
+    let currentChart, previousChart, fourStepChart, analyticsChart, trendsChart;
     let chartsAnimated = false;
     const tabAnimated = {};
 
@@ -504,6 +530,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
     function initializeFunnelCharts() {
       if (currentChart)  currentChart.destroy();
       if (previousChart) previousChart.destroy();
+      if (fourStepChart) fourStepChart.destroy();
 
       const datalabels = {
         color: 'white',
@@ -548,19 +575,23 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
         ...baseConfig,
         data: { ...baseConfig.data, datasets: baseConfig.data.datasets.map((ds, i) => i === 0 ? { ...ds, backgroundColor: RED } : { ...ds }) }
       });
+
+      fourStepChart = new Chart(document.getElementById('fourStepChart').getContext('2d'), {
+        ...baseConfig,
+        data: { ...baseConfig.data, datasets: baseConfig.data.datasets.map((ds, i) => i === 0 ? { ...ds, backgroundColor: ORANGE } : { ...ds }) }
+      });
     }
 
     function updateFunnels() {
       if (!window.currentData) return;
 
-      const changeDateInput = document.getElementById('changeDate');
-      if (!changeDateInput.value) return;
-
-      const changeDate = new Date(changeDateInput.value);
+      const threeStepStart = new Date('2025-08-22'); // 3-step replaced 4-step
+      const twoStepStart   = new Date('2026-06-09'); // 2-step replaced 3-step
       const allData = window.currentData;
 
-      const currentData  = allData.filter(e => new Date(e.timestamp) >= changeDate);
-      const previousData = allData.filter(e => new Date(e.timestamp) <  changeDate);
+      const currentData  = allData.filter(e => new Date(e.timestamp) >= twoStepStart);
+      const previousData = allData.filter(e => new Date(e.timestamp) >= threeStepStart && new Date(e.timestamp) < twoStepStart);
+      const fourStepData = allData.filter(e => new Date(e.timestamp) <  threeStepStart);
 
       function processSessions(data) {
         const sessions = {};
@@ -594,13 +625,14 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
 
       function updateChart(chart, sessions, defaultMaxStep) {
         if (!chart) return;
-        const maxStep   = Math.max(...Object.values(sessions).map(s => s.maxStep), defaultMaxStep);
+        const maxStep   = defaultMaxStep;
         const hasSubs   = Object.values(sessions).some(s => s.submitted);
         const labels    = Array.from({ length: maxStep }, (_, i) => `Step ${i + 1}`);
         if (hasSubs) labels.push('Submitted');
         const counts    = Array(labels.length).fill(0);
         Object.values(sessions).forEach(s => {
-          for (let i = 0; i < s.maxStep; i++) counts[i]++;
+          const cappedStep = Math.min(s.maxStep, maxStep);
+          for (let i = 0; i < cappedStep; i++) counts[i]++;
           if (s.submitted && hasSubs) counts[maxStep]++;
         });
         chart.data.labels                 = labels;
@@ -609,12 +641,18 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
         chart.update(chartsAnimated ? 'none' : undefined);
       }
 
-      updateChart(currentChart,  cSessions, 2);
-      updateChart(previousChart, pSessions, 3);
+      const fsSessions = processSessions(fourStepData);
+      const fsViews = Object.keys(fsSessions).length;
+      const fsSubs  = Object.values(fsSessions).filter(s => s.submitted).length;
+      document.getElementById('fourStepViews').textContent      = fsViews;
+      document.getElementById('fourStepSubmissions').textContent = fsSubs;
+      document.getElementById('fourStepConversion').textContent  = fsViews > 0 ? `${((fsSubs/fsViews)*100).toFixed(1)}%` : '0%';
+
+      updateChart(currentChart,  cSessions,  2);
+      updateChart(previousChart, pSessions,  3);
+      updateChart(fourStepChart, fsSessions, 4);
     }
 
-    const implementationDate = new Date('2026-06-09');
-    document.getElementById('changeDate').value = implementationDate.toISOString().split('T')[0];
 
     function initializeAnalyticsChart() {
       if (analyticsChart) analyticsChart.destroy();
@@ -674,13 +712,14 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
           sessions[sessionId].submitted = true;
         }
       });
-      const maxStep = Math.max(...Object.values(sessions).map(s => s.maxStep), 2);
+      const maxStep = 2;
       const hasSubs = Object.values(sessions).some(s => s.submitted);
       const labels  = Array.from({ length: maxStep }, (_, i) => `Step ${i + 1}`);
       if (hasSubs) labels.push('Submitted');
       const counts  = Array(labels.length).fill(0);
       Object.values(sessions).forEach(s => {
-        for (let i = 0; i < s.maxStep; i++) counts[i]++;
+        const cappedStep = Math.min(s.maxStep, maxStep);
+        for (let i = 0; i < cappedStep; i++) counts[i]++;
         if (s.submitted && hasSubs) counts[maxStep]++;
       });
       analyticsChart.data.labels             = labels;
