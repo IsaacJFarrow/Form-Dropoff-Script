@@ -260,6 +260,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
       <button class="tab-link" onclick="openTab(event, 'FourStep')">Previous Funnel (4 Steps)</button>
       <button class="tab-link" onclick="openTab(event, 'Analytics')">Analytics</button>
       <button class="tab-link" onclick="openTab(event, 'Submissions')">Submissions Log</button>
+      <button class="tab-link" onclick="openTab(event, 'ROI')">ROI Calculator</button>
     </div>
 
     <!-- Current Funnel -->
@@ -409,6 +410,30 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
         <tbody></tbody>
       </table>
     </div>
+
+    <!-- ROI Calculator -->
+    <div id="ROI" class="tab-content">
+      <div class="notice">
+        <strong>ROI Calculator:</strong> Of the people who open the calculator and click "Calculate Your Potential ROI", how many go on to click "Let's talk about your numbers" rather than dropping off.
+      </div>
+
+      <div class="stats" style="margin-bottom: 2rem;">
+        <div class="stat-card">
+          <h2 class="heading-style-h3">Calculator Views</h2>
+          <p class="text-size-large" id="roiViews">0</p>
+        </div>
+        <div class="stat-card">
+          <h2 class="heading-style-h3">Calculated ROI</h2>
+          <p class="text-size-large" id="roiCalculated">0</p>
+        </div>
+        <div class="stat-card">
+          <h2 class="heading-style-h3">Calculate &rarr; Talk Rate</h2>
+          <p class="text-size-large" id="roiConversion">0%</p>
+        </div>
+      </div>
+
+      <canvas id="roiChart"></canvas>
+    </div>
   </div>
   </div>
 
@@ -434,6 +459,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
         if (tabName === 'FourStep'  && fourStepChart)  { fourStepChart.reset();  fourStepChart.update(); }
         if (tabName === 'Analytics' && analyticsChart) { analyticsChart.reset(); analyticsChart.update(); }
         if (tabName === 'MonthlyTrends' && trendsChart) { trendsChart.reset(); trendsChart.update(); }
+        if (tabName === 'ROI' && roiChart) { roiChart.reset(); roiChart.update(); }
       }
     }
 
@@ -450,7 +476,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
 
     Chart.register(ChartDataLabels);
 
-    let currentChart, previousChart, fourStepChart, analyticsChart, trendsChart;
+    let currentChart, previousChart, fourStepChart, analyticsChart, trendsChart, roiChart;
     let chartsAnimated = false;
     const tabAnimated = {};
 
@@ -498,6 +524,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
         updateFunnels();
         updateAnalyticsChart(filteredData);
         updateTrendsChart(allData);
+        updateRoiFunnel(allData);
 
         const sessionIds = Object.keys(sessions);
         const totalViews = sessionIds.length;
@@ -823,6 +850,74 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
       document.getElementById('avgGrowth').textContent   = `${avgGrowth >= 0 ? '+' : ''}${avgGrowth.toFixed(1)}%`;
     }
 
+    // ── ROI Calculator funnel ──────────────────────
+    function initializeRoiChart() {
+      if (roiChart) roiChart.destroy();
+
+      const datalabels = {
+        color: 'white',
+        anchor: 'center',
+        align: 'center',
+        font: { size: 16, weight: 'bold' },
+        formatter: (value, context) => {
+          const data = context.chart.data.datasets[0].data;
+          if (context.dataIndex === 0) return null;
+          const prev = data[context.dataIndex - 1];
+          if (prev === 0) return null;
+          const drop = ((prev - value) / prev) * 100;
+          return drop > 0 ? `${drop.toFixed(0)}%` : null;
+        }
+      };
+
+      roiChart = new Chart(document.getElementById('roiChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: [],
+          datasets: [
+            { label: 'Users Reached Stage', data: [], backgroundColor: BLUE, order: 2, datalabels },
+            { type: 'line', label: 'Funnel Flow', data: [], borderColor: GREY, backgroundColor: GREY, tension: 0, order: 1, datalabels: { display: false } }
+          ]
+        },
+        options: {
+          animation: ANIMATION,
+          plugins: { legend: { display: false }, title: { display: true, text: 'ROI Calculator Funnel' } },
+          scales: {
+            y: { beginAtZero: true, title: { display: true, text: 'Number of Users' }, ticks: { precision: 0 } },
+            x: { title: { display: true, text: 'Stage' } }
+          }
+        }
+      });
+    }
+
+    function updateRoiFunnel(allData) {
+      if (!roiChart || !allData) return;
+
+      const sessions = {};
+      allData.forEach(({ sessionId, event: eventType }) => {
+        if (!sessionId) return;
+        if (!eventType || !eventType.startsWith('roi')) return;
+        if (!sessions[sessionId]) sessions[sessionId] = { viewed: false, calculated: false, talked: false };
+        if (eventType === 'roiView')      sessions[sessionId].viewed = true;
+        if (eventType === 'roiCalculate') sessions[sessionId].calculated = true;
+        if (eventType === 'roiCTA')        sessions[sessionId].talked = true;
+      });
+
+      const all        = Object.values(sessions);
+      // A session that calculated or talked without a recorded view still counts as a viewer.
+      const views      = all.filter(s => s.viewed || s.calculated || s.talked).length;
+      const calculated = all.filter(s => s.calculated).length;
+      const talked     = all.filter(s => s.talked).length;
+
+      document.getElementById('roiViews').textContent      = views;
+      document.getElementById('roiCalculated').textContent = calculated;
+      document.getElementById('roiConversion').textContent = calculated > 0 ? `${((talked / calculated) * 100).toFixed(1)}%` : '0%';
+
+      roiChart.data.labels           = ['Viewed', 'Calculated', "Let's Talk"];
+      roiChart.data.datasets[0].data = [views, calculated, talked];
+      roiChart.data.datasets[1].data = [views, calculated, talked];
+      roiChart.update(chartsAnimated ? 'none' : undefined);
+    }
+
     let monthPickerInitialized = false;
 
     function populateMonthPicker(allData) {
@@ -873,6 +968,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
     initializeFunnelCharts();
     initializeAnalyticsChart();
     initializeTrendsChart();
+    initializeRoiChart();
     updateDashboard();
     setInterval(updateDashboard, 5000);
   </script>
