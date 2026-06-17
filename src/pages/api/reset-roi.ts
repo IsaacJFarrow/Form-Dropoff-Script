@@ -5,11 +5,11 @@ import { like }    from 'drizzle-orm';
 import { events }  from '../../db/schema';
 
 // ⚠️ ONE-OFF: clears only the ROI calculator events (event_type LIKE 'roi%').
-// Token-gated so crawlers/prefetch can't trigger it. DELETE THIS FILE once the
-// ROI data has been reset, then redeploy.
+// Token-gated. Uses GET because Astro's CSRF checkOrigin rejects cross-proxy
+// POSTs on Webflow Cloud. DELETE THIS FILE once the ROI data is reset, then redeploy.
 const RESET_TOKEN = 'roi-reset-9f3a2c7b';
 
-export async function POST({ request, locals }: { request: Request; locals: App.Locals }) {
+export async function GET({ request, locals }: { request: Request; locals: App.Locals }) {
   const url = new URL(request.url);
   if (url.searchParams.get('token') !== RESET_TOKEN) {
     return new Response('Forbidden', { status: 403 });
