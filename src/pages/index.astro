@@ -73,6 +73,15 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
       .stats { grid-template-columns: repeat(2, 1fr); }
     }
 
+    /* ROI funnel has 4 cards */
+    .stats--roi { grid-template-columns: repeat(4, 1fr); }
+    @media (max-width: 767px) {
+      .stats--roi { grid-template-columns: 1fr; }
+    }
+    @media (min-width: 768px) and (max-width: 991px) {
+      .stats--roi { grid-template-columns: repeat(2, 1fr); }
+    }
+
     .stat-card {
       padding: 1.5rem;
       border-radius: 1rem;
@@ -417,10 +426,14 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
         <strong>ROI Calculator:</strong> Of the people who open the calculator and click "Calculate Your Potential ROI", how many go on to click "Let's talk about your numbers" rather than dropping off.
       </div>
 
-      <div class="stats" style="margin-bottom: 2rem;">
+      <div class="stats stats--roi" style="margin-bottom: 2rem;">
         <div class="stat-card">
           <h2 class="heading-style-h3">Calculator Views</h2>
           <p class="text-size-large" id="roiViews">0</p>
+        </div>
+        <div class="stat-card">
+          <h2 class="heading-style-h3">Interactions</h2>
+          <p class="text-size-large" id="roiInteractions">0</p>
         </div>
         <div class="stat-card">
           <h2 class="heading-style-h3">Calculated ROI</h2>
@@ -896,25 +909,29 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, ''); // e.g. '/tracker'
       allData.forEach(({ sessionId, event: eventType }) => {
         if (!sessionId) return;
         if (!eventType || !eventType.startsWith('roi')) return;
-        if (!sessions[sessionId]) sessions[sessionId] = { viewed: false, calculated: false, talked: false };
+        if (!sessions[sessionId]) sessions[sessionId] = { viewed: false, interacted: false, calculated: false, talked: false };
         if (eventType === 'roiView')      sessions[sessionId].viewed = true;
+        if (eventType === 'roiInteract')  sessions[sessionId].interacted = true;
         if (eventType === 'roiCalculate') sessions[sessionId].calculated = true;
         if (eventType === 'roiCTA')        sessions[sessionId].talked = true;
       });
 
       const all        = Object.values(sessions);
       // A session that calculated or talked without a recorded view still counts as a viewer.
-      const views      = all.filter(s => s.viewed || s.calculated || s.talked).length;
+      const views      = all.filter(s => s.viewed || s.interacted || s.calculated || s.talked).length;
+      // Calculating or talking implies they touched the calculator, even if the interact event was missed.
+      const interacted = all.filter(s => s.interacted || s.calculated || s.talked).length;
       const calculated = all.filter(s => s.calculated).length;
       const talked     = all.filter(s => s.talked).length;
 
-      document.getElementById('roiViews').textContent      = views;
-      document.getElementById('roiCalculated').textContent = calculated;
-      document.getElementById('roiConversion').textContent = calculated > 0 ? `${((talked / calculated) * 100).toFixed(1)}%` : '0%';
+      document.getElementById('roiViews').textContent        = views;
+      document.getElementById('roiInteractions').textContent = interacted;
+      document.getElementById('roiCalculated').textContent   = calculated;
+      document.getElementById('roiConversion').textContent   = calculated > 0 ? `${((talked / calculated) * 100).toFixed(1)}%` : '0%';
 
-      roiChart.data.labels           = ['Viewed', 'Calculated', "Let's Talk"];
-      roiChart.data.datasets[0].data = [views, calculated, talked];
-      roiChart.data.datasets[1].data = [views, calculated, talked];
+      roiChart.data.labels           = ['Viewed', 'Interacted', 'Calculated', "Let's Talk"];
+      roiChart.data.datasets[0].data = [views, interacted, calculated, talked];
+      roiChart.data.datasets[1].data = [views, interacted, calculated, talked];
       roiChart.update(chartsAnimated ? 'none' : undefined);
     }
 
