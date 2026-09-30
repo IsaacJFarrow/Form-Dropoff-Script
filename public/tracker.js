@@ -31,7 +31,8 @@
   // Add your team's IP addresses here
   const BLOCKED_IPS = [
     "125.236.202.162", // Team IP
-    "122.59.31.188",   // Team IP — keep in sync with roi-calculator track.ts
+    "122.59.31.188",   // Team IP
+    "122.58.241.22",   // Team IP — keep in sync with track.ts
     // Add more team member IPs here, e.g.:
     // '203.123.45.67',  // Office IP
     // '192.168.1.100',  // Another team member IP
